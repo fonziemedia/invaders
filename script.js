@@ -103,31 +103,17 @@
 				};
 				
 				//======================  Game Anim speed / movement =====================		
-				if (navigator.userAgent.match(/(iPod|iPhone|iPad|Android)/)) {
 				game.enemySpeed = 6; //the enemies' speed on mobiles
-				} else {
 				game.enemySpeed = 3; //the enemies' speed
-				}
-				if (navigator.userAgent.match(/(iPod|iPhone|iPad|Android)/)) {
-				game.enemyDownSpeed = 6;
-				} else {
 				game.enemyDownSpeed = 3;
-				}
 				game.leftCount = 1; //game timers for making enemies move left-right and charge down
 				game.downCount = 1;
 				game.leftDivision = Math.floor(180/game.level * (game.width/2100)); //the higher division is the slower our timer will run
 				game.downDivision = 200 * game.level; //the higher the level the slower the enemies come down
 				game.left = false;
 				game.down = false;
-				if (navigator.userAgent.match(/(iPod|iPhone|iPad|Android)/)) {
-					game.fullShootTimer = 16;	//this timer will limit the number of bullets being fired
-				}
-				else {
-					game.fullShootTimer = 20;	//this timer will limit the number of bullets being fired
-				
-				}
+				game.fullShootTimer = 20;	//this timer will limit the number of bullets being fired
 				game.shootTimer = game.fullShootTimer;				
-				
 			}
 
 			//Initial call 
@@ -158,13 +144,15 @@
         ctx = canvas.getContext("2d");
 		         
         canvas.addEventListener("mousedown",mouseDown, false);
+        canvas.addEventListener("mouseup", mouseUp, false);        
         canvas.addEventListener("mousemove",mouseXY, false);
+
         canvas.addEventListener("touchstart", touchDown, false);
-		canvas.addEventListener("touchmove", touchXY, true);
-		canvas.addEventListener("touchend", touchUp, false);
-         
-        canvas.addEventListener("mouseup", mouseUp, false);
-		canvas.addEventListener("touchcancel", touchUp, false);                 
+        canvas.addEventListener("touchend", touchUp, false);
+        canvas.addEventListener("touchcancel", touchUp, false);
+        canvas.addEventListener("touchleave", touchUp, false);
+		canvas.addEventListener("touchmove", touchXY, false);
+		                
 		}
 		
 		
@@ -175,7 +163,6 @@
 		 
 		function touchUp() {
 			mouseIsDown = 0;
-			showPos();
 		}
 		 
 		function mouseDown() {
@@ -189,10 +176,10 @@
 		}
 		
 		function mouseXY(e) {
-		e.preventDefault();
-		canvasX = e.pageX - canvas.offsetLeft;
-		canvasY = e.pageY - canvas.offsetTop;
-		//showPos();
+			e.preventDefault();
+			canvasX = e.pageX - canvas.offsetLeft;
+			canvasY = e.pageY - canvas.offsetTop;
+			//showPos();
 		}
 		 
 		function touchXY(e) {
