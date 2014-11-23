@@ -3,6 +3,49 @@
 		
 		window.addEventListener('load', initInput, false);	//start listening to mouse & touch events	
 		
+		/* Connect to XML */
+
+		// Create a connection to the file.
+		var Connect = new XMLHttpRequest();
+
+		// Define which file to open and
+		// send the request.
+		Connect.open("GET", "game.xml", false);
+		Connect.setRequestHeader("Content-Type", "text/xml");
+		Connect.send(null);
+
+		// Place the response in an XML document.
+		var TheDocument = Connect.responseXML;
+
+		// Place the root node in an element.
+		var X_Game = TheDocument.childNodes[0];
+
+
+
+		// Retrieve each Xml_Intro in turn.
+		var X_Settings = X_Game.children[0];
+		var X_Intro = X_Game.children[1];
+		  
+		   // SETTINGS Values
+		var X_Sound = X_Settings.getElementsByTagName("sound");
+		var X_Level = X_Settings.getElementsByTagName("level");
+		var X_Lives = X_Settings.getElementsByTagName("player-lives");
+		var X_PlayerSpeed = X_Settings.getElementsByTagName("player-speed");
+		var X_EnemySpeed = X_Settings.getElementsByTagName("enemy-speed");
+		var X_GunSpeed = X_Settings.getElementsByTagName("reload-time");
+		var X_BulletSpeed = X_Settings.getElementsByTagName("bullet-speed");
+
+
+		   // INTRO Text
+		var X_Title = X_Intro.getElementsByTagName("title");
+		var X_Subtitle = X_Intro.getElementsByTagName("subtitle");
+		var X_dt_Start = X_Intro.getElementsByTagName("dt-start");
+		var X_mb_Start = X_Intro.getElementsByTagName("mb-start");
+
+
+
+		/*THE GAME*/
+
 		var game = {}; //this is a global var which will contain other game vars
 		
 		game.stars = []; //this is an array which will contain our stars info: position in space and size
@@ -19,9 +62,9 @@
 		game.score = 0; //the game score
 		game.levelScore = 0; //the score for each level
 		
-		game.level = 1; //starting at level 1...
+		game.level = parseInt(X_Level[0].textContent.toString()); //starting at level X...
 		
-		game.lives = 3; //with 3 ships (lives)
+		game.lives = parseInt(X_Lives[0].textContent.toString()); //with X ships (lives)
 		
 		game.keys = []; //the keyboard array
 		
@@ -34,12 +77,14 @@
 		
 		//========================== Audio ==========================
 		
+		game.sound = parseInt(X_Sound[0].textContent.toString());
+
 		game.enemyexplodeSound = new Audio("_sounds/explosion.wav");
 		game.playerexplodeSound = new Audio("_sounds/blast.mp3");
 		game.shootSound = new Audio("_sounds/laser.wav");
 		game.deathSound = new Audio("_sounds/death.mp3");
 		game.winSound = new Audio("_sounds/victory.mp3");
-		 
+
 			
 		//======================== Images ========================		
 			
@@ -59,13 +104,15 @@
 		
 		//====================== Canvases + Images + responsiveness  ============================
 		
-		game.contextBackground = document.getElementById("backgroundCanvas").getContext("2d"); //defining the 2 different canvas
+		game.contextBackground = document.getElementById("backgroundCanvas").getContext("2d"); //defining the 4 different canvas
 		game.contextEnemies = document.getElementById("enemiesCanvas").getContext("2d");
 		game.contextPlayer = document.getElementById("playerCanvas").getContext("2d");
 		game.contextText = document.getElementById("textCanvas").getContext("2d");
-		
-		
-		$(document).ready( function(){
+				
+
+
+		$(document).ready( function(){							//making our canvases dynamically resize according to the size of the browser window
+			
 			//Get the canvas & context
 			var c1 = $('#backgroundCanvas');
 			var c2 = $('#enemiesCanvas');
@@ -75,44 +122,43 @@
 			var container = $(c1).parent();
 
 			//Run function when browser resizes
-			$(window).resize( respondCanvas );
+			$(window).resize(respondCanvas);
 
 			function respondCanvas(){ 
-				c1.attr('width', $(container).width() ); //max width
-				c1.attr('height', $(container).height() * 0.95 ); //max height
+				c1.attr('width', $(container).width()); //max width
+				c1.attr('height', $(container).height()); //max height
 				c2.attr('width', $(container).width() ); //max width
-				c2.attr('height', $(container).height() * 0.95 ); //max height
-				c3.attr('width', $(container).width() ); //max width
-				c3.attr('height', $(container).height() * 0.95 ); //max height
-				c4.attr('width', $(container).width() * 0.5 ); //max width
-				c4.attr('height', $(container).height() * 0.5 ); //max height
+				c2.attr('height', $(container).height()); //max height
+				c3.attr('width', $(container).width()); //max width
+				c3.attr('height', $(container).height()); //max height
+				c4.attr('width', $(container).width()); //max width
+				c4.attr('height', $(container).height() * 0.1 ); //max height
 				
 				
 				game.width = $(container).width(); //we'll use width and height to limit the game to our canvas size
-				game.height = $(container).height() * 0.95;
+				game.height = $(container).height();
 				
 				game.player = {	//creating our player
-					x: game.width /2 -50,
-					y: game.height - 100,
-					width: 120 * (game.height /1300),
-					height: 120 * (game.height /1300),
-					speed: 5,
+					x: game.width*0.46,
+					y: game.height*0.90,
+					width: game.height*0.08,
+					height: game.height*0.08,
+					speed: parseInt(X_PlayerSpeed[0].textContent.toString()),
 					image: 0,
 					rendered: false,
 					crashed: false					
 				};
 				
-				//======================  Game Anim speed / movement =====================		
-				game.enemySpeed = 6; //the enemies' speed on mobiles
-				game.enemySpeed = 3; //the enemies' speed
-				game.enemyDownSpeed = 3;
+				//======================  Game settings =====================		
+				
+				game.enemySpeed = parseInt(X_EnemySpeed[0].textContent.toString()) * game.height/2500; //the enemies' speed
 				game.leftCount = 1; //game timers for making enemies move left-right and charge down
 				game.downCount = 1;
-				game.leftDivision = Math.floor(180/game.level * (game.width/2100)); //the higher division is the slower our timer will run
-				game.downDivision = 200 * game.level; //the higher the level the slower the enemies come down
+				game.downDivision = 600; //the higher the level the slower the enemies come down
+				game.leftDivision = parseInt(game.width*0.20);
 				game.left = false;
 				game.down = false;
-				game.fullShootTimer = 20;	//this timer will limit the number of bullets being fired
+				game.fullShootTimer = parseInt(X_GunSpeed[0].textContent.toString());	//this timer will limit the number of bullets being fired
 				game.shootTimer = game.fullShootTimer;				
 			}
 
@@ -220,16 +266,16 @@
 			for(y = 0; y < game.level; y++) {	// y enemies vertically..
 				for(x = 0; x < game.level; x++){ // ..by x horizontally
 					game.enemies.push({ //adding value to the game.enemies array
-						x: (game.width/5) + (game.width/8) * x,  //setting positions and making space between enemies
-						y: (y * 70) + (10 * y) + 40,
-						width: 7 * (game.height /100), //the size of our enemies
-						height: 7 * (game.height /100),
+						x: game.width*0.15  + (x*(game.width*0.15)) ,  //setting positions (1st bit) and making space between enemies (2nd bit)
+						y: game.height*0.10 + y*(game.player.height),
+						width: game.height*0.06, //the size of our enemies
+						height: game.height*0.06,
 						image: 1, //their ships...
 						dead: false,
 						deadTime: 20
 					});
 				}
-			}		
+			}	
 								
 			loop();
 			
@@ -250,7 +296,20 @@
 			if (game.keys[27]) {
 				game.lives = 0;
 			}
-			
+
+			//game sound
+			if (game.keys[119]) {
+				game.sound = (game.sound) ? false : true;
+				game.keys[119] = false;
+				scores();
+			}
+
+			//game pause
+			if ((game.keys[80]) && !(game.gameWon) && !(game.gameOver)) {
+				game.paused = (game.paused) ? false : true;
+				game.keys[80] = false;
+			}
+
 			//If Esc pressed or if gameover and enter pressed
 			if (game.keys[27] ||
 			   ((game.keys[13] || mouseIsDown) && game.paused && !(game.start) && game.gameOver && !(game.gameWon)) ||
@@ -259,11 +318,11 @@
 					game.gameOver = false;	
 					game.gameWon = false;
 					if (game.lives < 1 || game.level >=7){
-						game.level = 1;
+						game.level = parseInt(X_Level[0].textContent.toString());
 						game.score = 0;
-						game.lives = 3;
-						game.downDivision = 200 * game.level;
-						game.leftDivision = Math.floor(180/game.level * (game.width/2100)); 
+						game.lives = parseInt(X_Lives[0].textContent.toString());
+						game.downDivision = Math.floor((300 * game.level)); //the higher the level the slower the enemies come down
+						game.leftDivision = parseInt((game.width*0.25)-((game.width*0.035)*game.level)); 
 					}
 					game.downCount = 1;
 					game.leftCount = 1;
@@ -276,32 +335,33 @@
 					game.projectiles = [];
 					game.enemies = [];
 					
-					for(y = 0; y < game.level; y++) {	// 5 enemies vertically..
-						for(x = 0; x < game.level; x++){ // ..by 5 horizontally
+					for(y = 0; y < game.level; y++) {	// y enemies vertically..
+						for(x = 0; x < game.level; x++){ // ..by x horizontally
 							game.enemies.push({ //adding value to the game.enemies array
-							x: (game.width/5) + (game.width/8) * x,  //setting positions and making space between enemies
-							y: (y * 70) + (10 * y) + 40,
-							width: 7 * (game.height /100), //the size of our enemies
-							height: 7 * (game.height /100),
-							image: 1, //their ships...
-							dead: false,
-							deadTime: 20
-						});
+								x: game.width*0.05  + (x*(game.width*0.15)) ,  //setting positions (1st bit) and making space between enemies (2nd bit)
+								y: game.height*0.10 + y*(game.player.height),
+								width: game.height*0.06, //the size of our enemies
+								height: game.height*0.06,
+								image: 1, //their ships...
+								dead: false,
+								deadTime: 20
+							});
 						}
 					}
+
 					game.player = {	//creating our player
-						x: game.width /2 -50,
-						y: game.height - 100,
-						width: 120 * (game.height /1300),
-						height: 120 * (game.height /1300),
-						speed: 5,
+						x: game.width*0.46,
+						y: game.height*0.90,
+						width: game.height*0.08,
+						height: game.height*0.08,
+						speed: parseInt(X_PlayerSpeed[0].textContent.toString()),
 						image: 0,
 						rendered: false,
 						crashed: false					
 					};
 					game.paused = false;
-					scores();							
-			}
+					scores();
+			};
 			
 			//level up
 			if ((game.keys[13] || mouseIsDown) && !(game.gameOver) && !(game.start) && (game.gameWon) && game.level <= 6) {
@@ -309,8 +369,8 @@
 					game.gameWon = false;					
 					game.downCount = 1;
 					game.leftCount = 1;					
-					game.downDivision = Math.floor((200 * game.level)); //the higher the level the slower the enemies come down
-					game.leftDivision = Math.floor(180/game.level * (game.width/1600));
+					game.downDivision = Math.floor((300 * game.level)); //the higher the level the slower the enemies come down
+					game.leftDivision = parseInt((game.width*0.25)-((game.width*0.035)*game.level)); //the time it takes for enemies to turn: it's 25% of the witdth (the smaller the screen the faster they turn) minus a proportionate percentage per game level (25% - 3.5% per each level, because the more enemies on screen the faster they need to turn to keep them on screen.
 					game.left = false;
 					game.down = false;
 					game.contextBackground.clearRect(1, 1, game.width, game.height); 
@@ -321,28 +381,29 @@
 					game.enemies = [];
 										
 					
-					for(y = 0; y < game.level; y++) {	// 5 enemies vertically..
-						for(x = 0; x < game.level; x++){ // ..by 5 horizontally
+					for(y = 0; y < game.level; y++) {	// y enemies vertically..
+						for(x = 0; x < game.level; x++){ // ..by x horizontally
 							game.enemies.push({ //adding value to the game.enemies array
-								x: (game.width/5) + (game.width/8) * x,  //setting positions and making space between enemies
-								y: (y * 70) + (10 * y) + 40,
-								width: 7 * (game.height /100), //the size of our enemies
-								height: 7 * (game.height /100),
+								x: game.width*0.05  + (x*(game.width*0.15)) ,  //setting start spawning position according to width (1st bit) and making space between enemies (2nd bit)
+								y: game.height*0.10 + y*(game.player.height),
+								width: game.height*0.06, //the size of our enemies
+								height: game.height*0.06,
 								image: 1, //their ships...
 								dead: false,
 								deadTime: 20
 							});
 						}
 					}
-					game.player = {	//resetting player
-						x: game.width /2 -50,
-						y: game.height - 100,
-						width: 120 * (game.height /1300),
-						height: 120 * (game.height /1300),
-						speed: 5 * (game.width/1300),
+
+					game.player = {	//reseting our player
+						x: game.width*0.46,
+						y: game.height*0.90,
+						width: game.height*0.08,
+						height: game.height*0.08,
+						speed: parseInt(X_PlayerSpeed[0].textContent.toString()),
 						image: 0,
 						rendered: false,
-						crashed: false
+						crashed: false					
 					};
 					game.paused = false;
 					scores();
@@ -368,10 +429,10 @@
 		
 		function update(){ //game logic goes here			
 			addStars(1);		
-			if(game.leftCount > 100000)game.count = 0; //this is necessary otherwise game.count++ would break the game at some point
-			if(game.downCount > 100000)game.count = 0; //this is necessary otherwise game.count++ would break the game at some point
+			if(game.leftCount > 100000)game.leftCount = 0; //this is necessary otherwise game.leftCount++ would break the game at some point
+			if(game.downCount > 100000)game.downCount = 0; //this is necessary otherwise game.downCount++ would break the game at some point
 			game.downCount++;
-			game.leftCount++; //adding to our counter
+			game.leftCount++; //adding to our counters
 			
 			if(game.shootTimer > 0)game.shootTimer--; //start ticking our timer down
 			
@@ -381,14 +442,16 @@
 				}
 				game.stars[i].y--;
 			}
+			
+
 			//define keys + mouse & touch controls
 			
 			if (mouseIsDown && !(game.paused) && !(game.gameOver) && !(game.gameWon)) {
 				
-				if((canvasX > -10 && canvasX <= (game.width - game.player.width)) && (canvasY > 70*(game.width/1300) && canvasY <= (game.height - game.player.height +80*(game.width/1300)))) {
+				if((canvasX > (game.player.width/4) && canvasX <= (game.width - game.player.width/4)) && (canvasY > game.player.height) && canvasY <= (game.height - game.player.height/6)) {
 			
 				game.player.x = canvasX-game.player.width/2;
-				game.player.y = canvasY-game.player.height*1.6;
+				game.player.y = canvasY-game.player.height*1.2;
 				game.player.rendered = false;				
 			
 				}
@@ -396,7 +459,7 @@
 			
 			if(game.keys[37] || game.keys[65] && !(game.gameOver) && !(game.gameWon)){ //if key pressed..
 				
-					if(game.player.x > -10){ // (keeping it within the boundaries of our canvas)
+					if(game.player.x > game.player.width/50){ // (keeping it within the boundaries of our canvas)
 					game.player.x-=game.player.speed; //..do this
 					game.player.rendered = false;
 			}}
@@ -406,7 +469,7 @@
 					game.player.rendered = false;
 			}}
 			if(game.keys[38] || game.keys[87] && !(game.gameOver) && !(game.gameWon)){
-					if(game.player.y > -10){
+					if(game.player.y > game.player.height/12){
 					game.player.y-=game.player.speed;
 					game.player.rendered = false;
 			}}
@@ -416,7 +479,7 @@
 					game.player.rendered = false;
 				}	
 			}
-			if(game.leftCount % game.leftDivision == 0){   //this is our timer for enemies to change movement direction. If the division of these vars equals 0 then..
+			if(game.leftCount % game.leftDivision == 0){   //this is our timer for enemies to change movement direction. If the division of these vars equals 0 then.. (% returns a boolean for the module (remainder) of a division, 0 if no result is a integer, 1 if decimal)
 				game.left = !game.left; //change direction
 			}
 			
@@ -435,13 +498,13 @@
 				}
 				
 				if(game.down){
-					game.enemies[i].y+=game.enemyDownSpeed;
+					game.enemies[i].y+=game.enemySpeed;
 				}
 				
-				if((game.enemies[i].y >= game.height - (game.player.height)) && !(game.gameOver)) {
+				if((game.enemies[i].y >= game.height - (game.player.height)) && !(game.gameOver)) {			//if shit hits the fan
 					game.player.rendered = false;
 					game.player.image = 3;
-					game.playerexplodeSound.play();
+					if (game.soundStatus == "ON"){game.playerexplodeSound.play();}
 					game.lives--;
 					game.score = game.score - game.levelScore;
 					game.gameOver = true;
@@ -449,10 +512,10 @@
 					mouseIsDown = 0;  
 					}
 				
-				if(EnemyCollision(game.enemies[i], game.player) && !(game.gameOver)){
+				if(EnemyCollision(game.enemies[i], game.player) && !(game.gameOver)){				//if player hits enemies and vice-versa
 					game.player.rendered = false;
 					game.player.image = 3;
-					game.playerexplodeSound.play();
+					if (game.soundStatus == "ON"){game.playerexplodeSound.play();}
 					game.lives--;
 					game.score = game.score - game.levelScore;
 					game.gameOver = true;
@@ -462,7 +525,7 @@
 			}
 						
 			for(i in game.projectiles){ //making each bullet fired move
-				game.projectiles[i].y-= 10 ;
+				game.projectiles[i].y-= parseInt(X_BulletSpeed[0].textContent.toString()) *game.height/1000 ; //bullet speed
 				if(game.projectiles[i].y <= -game.projectiles[i].size*2){ //if a bullet goes off the screen..
 					game.projectiles.splice(i,1); // ..remove it from the array/memory
 					}
@@ -470,19 +533,19 @@
 			
 			if((game.keys[32] || mouseIsDown) && game.shootTimer <=0 && !(game.paused)){ //only add a bullet if space is pressed and enough time has passed i.e. our timer has reached 0
 				addBullet();
-				game.shootSound.play();
+				if (game.soundStatus == "ON"){game.shootSound.play();}
 				game.shootTimer = game.fullShootTimer; //resetting our timer back to 15
 			}	
 
-			for(m in game.enemies){
+			for(m in game.enemies){																//bullet collision
 				for(p in game.projectiles){
 					if(BulletCollision(game.enemies[m], game.projectiles[p])){
-						game.enemyexplodeSound.play();
+						if(game.soundStatus == "ON"){game.enemyexplodeSound.play()};
 						game.enemies[m].dead = true;
 						game.score++;
 						game.levelScore++;
 						game.enemies[m].image = 3;
-						game.contextEnemies.clearRect(game.projectiles[p].x, game.projectiles[p].y, game.projectiles[p].size+6, game.projectiles[p].size+6);  
+						game.contextEnemies.clearRect(game.projectiles[p].x-game.projectiles[p].size*0.1, game.projectiles[p].y-game.projectiles[p].size*0.1, game.projectiles[p].size*1.1, game.projectiles[p].size*1.1);  
 						game.projectiles.splice(p,1);
 						scores();
 					}
@@ -491,10 +554,10 @@
 			
 			for (i in game.enemies){
 				if(game.enemies[i].dead){
-					game.enemies[i].deadTime--; //making dead enemies go away
+					game.enemies[i].deadTime--; //making dead enemies go away after a few secs
 				}
 				if (game.enemies[i].dead && game.enemies[i].deadTime <= 0){
-					game.contextEnemies.clearRect(game.enemies[i].x, game.enemies[i].y, game.enemies[i].width, game.enemies[i].height);
+					game.contextEnemies.clearRect(game.enemies[i].x-game.enemies[i].width*0.1, game.enemies[i].y-game.enemies[i].height*0.1, game.enemies[i].width*2.1, game.enemies[i].height*2.1);
 					game.enemies.splice(i,1);
 				}
 			}
@@ -503,7 +566,7 @@
 				if (game.delayTimer < 50) {
 					game.delayTimer++;
 					if (game.delayTimer >= 50) {
-						game.winSound.play();
+						if(game.soundStatus == "ON"){game.winSound.play()};
 						game.level++;	
 						game.gameWon = true;
 						game.paused = true;
@@ -517,7 +580,10 @@
 		
 		//====================== Render functions =================//
 		
-		function render(){ //rendering to the screen 
+		function render(){ //rendering to the screen
+
+			game.font = (navigator.userAgent.match(/(iPod|iPhone|iPad|Android)/)) ? "Helvetica" : "Monaco";
+
 			game.contextBackground.clearRect(0, 0, game.width, game.height); //clearing the star 'trails'
 			//setting the fill color to white
 			for(i in game.stars){
@@ -537,44 +603,72 @@
 			}
 			for(i in game.projectiles){ //for each bullet
 				var proj = game.projectiles[i];
-				game.contextEnemies.clearRect(proj.x, proj.y, proj.size*2, proj.size*2);
+				game.contextEnemies.clearRect(proj.x-proj.size*0.2, proj.y-proj.size*0.2, proj.size*3, proj.size*3);
 				game.contextEnemies.drawImage(game.images[proj.image], proj.x, proj.y, proj.size, proj.size);
 			}
 			if (game.gameOver && game.lives < 1){
-				game.contextPlayer.font = "bold 50px monaco";
+				game.contextPlayer.font = "bold " + game.width*0.08 + "px " + game.font;
 				game.contextPlayer.fillStyle = "#FF7F00";
-				game.contextPlayer.fillText("Game Over You Noob!", game.width / 16, game.height / 2 -75);
-				game.contextPlayer.font = "bold 30px monaco";
-				game.contextPlayer.fillText("Total Enemy ships destroyed: " + game.score, game.width / 7, game.height / 2 -25);
-				game.contextPlayer.fillText("Press Enter to restart", game.width / 4, game.height / 2 +25);
-				game.deathSound.play();
+				game.contextPlayer.fillText("Game Over", game.width*0.30, game.height*0.42);
+				game.contextPlayer.font = "bold " + game.width*0.06 + "px " + game.font;
+				game.contextPlayer.fillText(game.levelScore + " enemy ships destroyed", game.width*0.19, game.height*0.52);
+				game.contextPlayer.font = "bold " + game.width*0.04 + "px " + game.font;
+				game.contextPlayer.fillStyle = "white";
+				if (navigator.userAgent.match(/(iPod|iPhone|iPad|Android)/)) {
+					game.contextPlayer.fillText("Tap screen to restart", game.width*0.30, game.height*0.62);
+				} else {
+					game.contextPlayer.fillText("Press Enter or LMB to restart", game.width*0.23, game.height*0.62);
+				}
+				
+				if (game.soundStatus == "ON") {
+					game.deathSound.play();
+				}
 				game.levelScore = 0;
 			}
 			if (game.gameOver && game.lives >= 1){
-				game.contextPlayer.font = "bold 40px monaco";
+				game.contextPlayer.font = "bold " + game.width*0.06 + "px " + game.font;
 				game.contextPlayer.fillStyle = "#FFD455";
-				game.contextPlayer.fillText("Your ship has been Destroyed!", game.width / 22, game.height / 2 -50);
-				game.contextPlayer.font = "bold 30px monaco";
-				game.contextPlayer.fillText("Ships left: " + game.lives, game.width / 3, game.height / 2 );
+				game.contextPlayer.fillText("Your ship has been Destroyed!", game.width*0.11, game.height*0.45);
+				game.contextPlayer.font = "bold " + game.width*0.04 + "px " + game.font;
+				game.contextPlayer.fillText("(" + game.lives + " ships left)",  game.width*0.40, game.height*0.52 );
+				game.contextPlayer.fillStyle = "white";
+				if (navigator.userAgent.match(/(iPod|iPhone|iPad|Android)/)) {
+					game.contextPlayer.fillText("Tap screen to continue", game.width*0.30, game.height*0.58);
+				} else {
+					game.contextPlayer.fillText("Press Enter or LMB to continue", game.width*0.22, game.height*0.62);
+
+				}
 				game.levelScore = 0;
 			}
 			
 			if (game.gameWon && game.level > 1 && game.level <=6 ){
-				game.contextPlayer.font = "bold 50px monaco";				
+				game.contextPlayer.font = "bold " + game.width*0.08 + "px " + game.font;				
 				game.contextPlayer.fillStyle = "#FFD455";
-				game.contextPlayer.fillText("Battle Won!", game.width /2, game.height / 2 -75);
-				game.contextPlayer.font = "bold 30px monaco";
-				game.contextPlayer.fillText("Enemy ships destroyed: " + game.levelScore, game.width / 6, game.height / 2 -25);
-				game.contextPlayer.fillText("Press Enter to continue", game.width / 5, game.height / 2 +25);
+				game.contextPlayer.fillText("Battle Won!", game.width*0.30, game.height*0.42);
+				game.contextPlayer.font = "bold " + game.width*0.06 + "px " + game.font;
+				game.contextPlayer.fillText(game.levelScore + " enemy ships destroyed", game.width*0.19, game.height*0.52);
+				game.contextPlayer.font = "bold " + game.width*0.04 + "px " + game.font;
+				game.contextPlayer.fillStyle = "white";
+				if (navigator.userAgent.match(/(iPod|iPhone|iPad|Android)/)) {
+					game.contextPlayer.fillText("Tap screen to continue", game.width*0.30, game.height*0.62);
+				} else {
+					game.contextPlayer.fillText("Press Enter or LMB to continue", game.width*0.23, game.height*0.62);
+				}
 				game.levelScore = 0;
 			}
 			if (game.gameWon && game.level >=7){
-				game.contextPlayer.font = "bold 50px monaco";				
+				game.contextPlayer.font = "bold " + game.width*0.08 + "px " + game.font;				
 				game.contextPlayer.fillStyle = "#CC99FF";
-				game.contextPlayer.fillText("Victory!", game.width / 3, game.height / 2 -75);
-				game.contextPlayer.font = "bold 30px monaco";
-				game.contextPlayer.fillText("Total Enemy ships destroyed:" + game.score, game.width / 7, game.height / 2 -25);
-				game.contextPlayer.fillText("Press Enter to restart", game.width / 4, game.height / 2 +25);
+				game.contextPlayer.fillText("Victory!", game.width*0.35, game.height*0.42);
+				game.contextPlayer.font = "bold " + game.width*0.06 + "px " + game.font;
+				game.contextPlayer.fillText(game.levelScore + " enemy ships destroyed", game.width*0.17, game.height*0.52);
+				game.contextPlayer.font = "bold " + game.width*0.04 + "px " + game.font;
+				game.contextPlayer.fillStyle = "white";
+				if (navigator.userAgent.match(/(iPod|iPhone|iPad|Android)/)) {
+					game.contextPlayer.fillText("Tap screen to restart", game.width*0.30, game.height*0.62);
+				} else {
+					game.contextPlayer.fillText("Press Enter or LMB to restart", game.width*0.24, game.height*0.62);
+				}
 				game.levelScore = 0;
 			}			
 		}
@@ -623,24 +717,28 @@
 		
 		function addBullet(){ //add bullet function will be triggered every time space is pressed
 			game.projectiles.push({
-				x: game.player.x + game.player.width/2-8,
+				x: game.player.x + game.player.width*0.42,
 				y: game.player.y,
-				size: 15,
+				size: game.height*0.012,
 				image: 2
 			});
 		}
 		
-		function scores(){
+		function scores(){ 
 			game.contextText.fillStyle = "#FFD455";
-			game.contextText.font = "bold 20px helvetica";
-			game.contextText.clearRect(0, 0, 160, 160);
-			game.contextText.fillText("Score:" + game.score, 10, 30); //printing the score
-			game.contextText.fillText("Level:" + game.level, 10, 70); //printing level
-			
+			game.contextText.font = game.height*0.018 + "px helvetica";
+			game.contextText.clearRect(0, 0, game.width, game.height*0.1);
+			game.contextText.fillText("Level: " + game.level, game.height*0.03, game.height*0.04); //printing level
+			game.contextText.fillText("Score: " + game.score, game.height*0.15, game.height*0.04); //printing the score
+			game.soundStatus = (game.sound) ? "ON" : "OFF";
+			if (!navigator.userAgent.match(/(iPod|iPhone|iPad|Android)/)) {
+				game.contextText.fillText("Sound(F8): " + game.soundStatus, game.width - (game.height*0.40), game.height*0.04); //printing lives
+			}
 			for (i = 0; i < game.lives; i++){
-			game.contextText.fillText("Hangar:", 10, 110); //printing lives
-			game.contextText.drawImage(game.images[game.player.image], (i * 25 + 90), 90, 30, 30);
-			}		
+				game.contextText.fillText("Hangar: ", game.width - (game.height*0.20), game.height*0.04); //printing lives
+				game.contextText.drawImage(game.images[game.player.image], ((i * game.height*0.03)+game.width - (game.height*0.12)), game.height*0.02, game.height*0.03, game.height*0.03);
+			}
+
 		}
 		
 		function BulletCollision(first, second){ //detecting rectangles' (image) collision, first is going to be the bullet, second will be the enemies. Note: the function itself can be applied to anything, 'first' and 'second' can be any variable as long as they have x and y values
@@ -660,15 +758,17 @@
 		function checkImages(){	//checking if all images have been loaded. Once all loaded run init
 			if(game.doneImages >= game.requiredImages){
 				game.contextBackground.clearRect(0, 0, game.width, game.height);
-				game.contextBackground.font = "bold 80px monaco"; //the loading screen
+				game.contextBackground.font = "bold " + game.width*0.12 + "px " + game.font; //Intro screen
 				game.contextBackground.fillStyle = "purple";				
-				game.contextBackground.fillText("InVaDeRs!", (game.width/3), game.height/2-50);
-				game.contextBackground.font = "bold 50px monaco"; //the loading screen
+				game.contextBackground.fillText(X_Title[0].textContent.toString(), game.width*0.215, game.height*0.40);
+				game.contextBackground.font = "bold " + game.width*0.06 + "px " + game.font; 
+				game.contextBackground.fillStyle = "#FFD455";
+				game.contextBackground.fillText(X_Subtitle[0].textContent.toString(), game.width*0.08, game.height*0.50);
 				game.contextBackground.fillStyle = "white";
 				if (navigator.userAgent.match(/(iPod|iPhone|iPad|Android)/)) {
-					game.contextBackground.fillText("Tap to Start", (game.width/3), game.height/2);
+					game.contextBackground.fillText(X_mb_Start[0].textContent.toString(), game.width*0.26, game.height*0.60);
 				} else {
-					game.contextBackground.fillText("Press Enter to Start", (game.width/3), game.height/2);
+					game.contextBackground.fillText(X_dt_Start[0].textContent.toString(), game.width*0.14, game.height*0.65);
 				}
 				init(); //after checking images run init()
 			}else{
@@ -681,9 +781,9 @@
 		
 		//=========================== Game Start =================================== 
 		
-		game.contextBackground.font = "bold 50px monaco"; //the loading screen
+		game.contextBackground.font = "bold " + game.width*0.08 + "px " + game.font; //the loading screen
 		game.contextBackground.fillStyle = "white";
-		game.contextBackground.fillText("loading...", game.width/2 -100, game.height/2);
+		game.contextBackground.fillText("loading...", game.width*0.30, game.height*0.47);
 		
 		initImages(["_img/player.png", "_img/enemy.png", "_img/bullet.png", "_img/explosion.png"]); //using initimages function to load our images
 		checkImages(); //this function call starts our game
