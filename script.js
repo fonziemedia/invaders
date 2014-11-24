@@ -190,7 +190,9 @@
 		var canvasX;
 		var canvasY;
 		var mouseIsDown = 0;
-		
+		var moveX = canvasX;      //initial define of moveX as canvasX position
+ 
+
 		function initInput() {
         canvas = document.getElementById("playerCanvas");
         ctx = canvas.getContext("2d");
@@ -290,6 +292,7 @@
 		//====================== Game state =================//
 		
 		function gameStart() {
+
 			//game start
 			if ((game.keys[13] || mouseIsDown) && game.start && !(game.gameOver) && !(game.gameWon)) {
 				game.paused = false;
@@ -463,12 +466,60 @@
 			if (mouseIsDown && !(game.paused) && !(game.gameOver) && !(game.gameWon)) {
 				
 				if((canvasX > (game.player.width/4) && canvasX <= (game.width - game.player.width/4)) && (canvasY > game.player.height) && canvasY <= (game.height - game.player.height/6)) {
-			
+				
+				
+				moveRight1 = (canvasX > moveX && canvasX <= moveX + 1) ? true : false;
+				moveRight2 = (canvasX > moveX + 1 && canvasX <= moveX + 3) ? true : false;
+				moveRight3 = (canvasX > moveX + 3 && canvasX <= moveX + 5) ? true : false;
+				moveRight4 = (canvasX > moveX + 5 && canvasX <= moveX + 7) ? true : false;
+				moveRight5 = (canvasX > moveX + 7) ? true : false;
+
+				moveLeft1 = (canvasX < moveX && canvasX >= moveX -1) ? true : false;
+				moveLeft2 = (canvasX < moveX - 1 && canvasX >= moveX -3) ? true : false;
+				moveLeft3 = (canvasX < moveX - 3 && canvasX >= moveX -5) ? true : false;
+				moveLeft4 = (canvasX < moveX - 5 && canvasX >= moveX -7) ? true : false;
+				moveLeft5 = (canvasX < moveX - 7) ? true : false;
+
 				game.player.x = canvasX-game.player.width/2;
 				game.player.y = canvasY-game.player.height*1.2;
-				game.player.rendered = false;				
-			
+				
+				if (moveRight1) {
+					game.player.image = 4;
+				} else if (moveRight2) {
+					game.player.image = 5;
+				} else if (moveRight3) {
+					game.player.image = 6;
+				} else if (moveRight4) {
+					game.player.image = 7;
+				} else if (moveRight5) {
+					game.player.image = 8;
+
+				} else if (moveLeft1) {
+					game.player.image = 9;
+				} else if (moveLeft2) {
+					game.player.image = 10;
+				} else if (moveLeft3) {
+					game.player.image = 11;
+				} else if (moveLeft4) {
+					game.player.image = 12;
+				} else if (moveLeft5) {
+					game.player.image = 13;
+				} else {
+				 game.player.image = 0;	
 				}
+
+				game.player.rendered = false;				
+				moveX = canvasX; 	//second define of moveX as canvasX position
+				
+				}
+				/*		console.log (canvasX)
+						console.log (moveX);
+						console.log (moveRight);*/
+			}
+
+			if (!mouseIsDown && !game.gameOver) {
+				game.player.image = 0;
+				game.player.rendered = false;
 			}
 			
 			if(game.keys[37] || game.keys[65] && !(game.gameOver) && !(game.gameWon)){ //if key pressed..
@@ -785,17 +836,18 @@
 		
 		function scores(){ 
 			game.contextText.fillStyle = "#FFD455";
-			game.contextText.font = game.height*0.018 + "px helvetica";
+			game.contextText.font = game.height*0.025 + "px helvetica";
 			game.contextText.clearRect(0, 0, game.width, game.height*0.1);
 			game.contextText.fillText("Level: " + game.level, game.height*0.03, game.height*0.04); //printing level
 			game.contextText.fillText("Score: " + game.score, game.height*0.15, game.height*0.04); //printing the score
 			game.soundStatus = (game.sound) ? "ON" : "OFF";
 			if (!navigator.userAgent.match(/(iPod|iPhone|iPad|Android)/)) {
-				game.contextText.fillText("Sound(F8): " + game.soundStatus, game.width - (game.height*0.40), game.height*0.04); //printing lives
+				game.contextText.fillText("Sound(F8): " + game.soundStatus, game.width - (game.height*0.45), game.height*0.04); //printing lives
 			}
+			game.contextText.fillText("Hangar: ", game.width - (game.height*0.22), game.height*0.04); 
 			for (i = 0; i < game.lives; i++){
-				game.contextText.fillText("Hangar: ", game.width - (game.height*0.20), game.height*0.04); //printing lives
-				game.contextText.drawImage(game.images[game.player.image], ((i * game.height*0.03)+game.width - (game.height*0.12)), game.height*0.02, game.height*0.03, game.height*0.03);
+				//printing lives
+				game.contextText.drawImage(game.images[game.player.image], ((i * game.height*0.03)+game.width - (game.height*0.12)), game.height*0.015, game.height*0.035, game.height*0.035);
 			}
 
 		}
@@ -844,7 +896,23 @@
 		game.contextBackground.fillStyle = "white";
 		game.contextBackground.fillText("loading...", game.width*0.30, game.height*0.47);
 		
-		initImages(["_img/player.png", "_img/enemy.png", "_img/bullet.png", "_img/explosion.png"]); //using initimages function to load our images
+		initImages([	//using initimages function to load our images
+			"_img/fighter/fighter.png",
+			"_img/enemy.png",
+			"_img/bullet.png",
+			"_img/explosion.png",
+			"_img/fighter/fighter_right1.png",
+			"_img/fighter/fighter_right2.png",
+			"_img/fighter/fighter_right3.png",
+			"_img/fighter/fighter_right4.png",
+			"_img/fighter/fighter_right5.png",
+			"_img/fighter/fighter_left1.png",
+			"_img/fighter/fighter_left2.png",
+			"_img/fighter/fighter_left3.png",
+			"_img/fighter/fighter_left4.png",
+			"_img/fighter/fighter_left5.png",
+		]);
+		
 		checkImages(); //this function call starts our game
 	});
 })();
