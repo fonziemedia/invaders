@@ -7,7 +7,9 @@
 		<player-speed type="int">10</player-speed>
 		<enemy-speed type="int">10</enemy-speed> <!-- relative to screen height -->
 		<reload-time type="int">20</reload-time> <!-- lower is faster -->
-		<bullet-speed>10</bullet-speed>
+		<enreload-time type="int">100</enreload-time> <!-- lower is faster -->		
+		<bullet-speed type="int">10</bullet-speed>
+		<enbullet-speed type="int">5</enbullet-speed>		
 	</settings>
 	
 	<intro>

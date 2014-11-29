@@ -33,7 +33,9 @@
 		var X_PlayerSpeed = X_Settings.getElementsByTagName("player-speed");
 		var X_EnemySpeed = X_Settings.getElementsByTagName("enemy-speed");
 		var X_GunSpeed = X_Settings.getElementsByTagName("reload-time");
+		var X_EnGunSpeed = X_Settings.getElementsByTagName("enreload-time");		
 		var X_BulletSpeed = X_Settings.getElementsByTagName("bullet-speed");
+		var X_EnBulletSpeed = X_Settings.getElementsByTagName("enbullet-speed");
 
 
 		   // INTRO Text
@@ -69,6 +71,8 @@
 		game.keys = []; //the keyboard array
 		
 		game.projectiles = []; //Our proton torpedoes!
+		game.enprojectiles = []; //Enemy lasers!
+
 		
 		game.enemies = []; //The InVaDeRs
 		
@@ -159,7 +163,9 @@
 				game.left = false;
 				game.down = false;
 				game.fullShootTimer = parseInt(X_GunSpeed[0].textContent.toString());	//this timer will limit the number of bullets being fired
-				game.shootTimer = game.fullShootTimer;				
+				game.enfullShootTimer = parseInt(X_EnGunSpeed[0].textContent.toString());	//this timer will limit the number of bullets being fired by enemies
+				game.shootTimer = game.fullShootTimer;
+				game.enshootTimer = game.enfullShootTimer;								
 			}
 
 			//Initial call 
@@ -327,12 +333,15 @@
 					game.downCount = 1;
 					game.leftCount = 1;
 					game.left = false;
+					game.enfullShootTimer = parseInt(X_EnGunSpeed[0].textContent.toString()) / game.level;
+					game.enshootTimer = game.enfullShootTimer;
 					game.down = false;
 					game.contextBackground.clearRect(1, 1, game.width, game.height); 
 					game.contextPlayer.clearRect(1, 1, game.width, game.height); 
 					game.contextEnemies.clearRect(1, 1, game.width, game.height); 
-					game.contextText.clearRect(1, 1, game.width, game.height); 
-					game.projectiles = [];
+					game.contextText.clearRect(1, 1, game.width, game.height);
+					game.projectiles = []; 
+					game.enprojectiles = [];
 					game.enemies = [];
 					
 					for(y = 0; y < game.level; y++) {	// y enemies vertically..
@@ -373,11 +382,14 @@
 					game.leftDivision = parseInt((game.width*0.25)-((game.width*0.035)*game.level)); //the time it takes for enemies to turn: it's 25% of the witdth (the smaller the screen the faster they turn) minus a proportionate percentage per game level (25% - 3.5% per each level, because the more enemies on screen the faster they need to turn to keep them on screen.
 					game.left = false;
 					game.down = false;
+					game.enfullShootTimer = parseInt(X_EnGunSpeed[0].textContent.toString()) / game.level;
+					game.enshootTimer = game.enfullShootTimer;
 					game.contextBackground.clearRect(1, 1, game.width, game.height); 
 					game.contextPlayer.clearRect(1, 1, game.width, game.height); 
 					game.contextEnemies.clearRect(1, 1, game.width, game.height); 
 					game.contextText.clearRect(1, 1, game.width, game.height); 
 					game.projectiles = [];
+					game.enprojectiles = [];
 					game.enemies = [];
 										
 					
@@ -435,6 +447,8 @@
 			game.leftCount++; //adding to our counters
 			
 			if(game.shootTimer > 0)game.shootTimer--; //start ticking our timer down
+			if(game.enshootTimer > 0)game.enshootTimer--; //start ticking our enemy shoot timer down
+
 			
 			for(i in game.stars){
 				if(game.stars[i].y <= -5){ //removing gone passed stars from memory
@@ -512,7 +526,7 @@
 					mouseIsDown = 0;  
 					}
 				
-				if(EnemyCollision(game.enemies[i], game.player) && !(game.gameOver)){				//if player hits enemies and vice-versa
+				if(Collision(game.enemies[i], game.player) && !(game.gameOver)){				//if player hits enemies and vice-versa
 					game.player.rendered = false;
 					game.player.image = 3;
 					if (game.soundStatus == "ON"){game.playerexplodeSound.play();}
@@ -530,7 +544,19 @@
 					game.projectiles.splice(i,1); // ..remove it from the array/memory
 					}
 			}
-			
+
+			for(c in game.enprojectiles){ //making each bullet fired move
+				game.enprojectiles[c].y+= parseInt(X_EnBulletSpeed[0].textContent.toString()) *game.height/1000 ; //bullet speed
+				if(game.enprojectiles[c].y >= game.height) { //if a bullet goes off the screen..
+					game.enprojectiles.splice(c,1); // ..remove it from the array/memory
+					}
+			}
+
+			if(game.enemies.length > 0 && game.enshootTimer <=0 && !(game.paused)){ //only add a bullet if space is pressed and enough time has passed i.e. our timer has reached 0
+				addEnBullet();
+				game.enshootTimer = game.enfullShootTimer; //resetting our timer back to 15
+			}
+
 			if((game.keys[32] || mouseIsDown) && game.shootTimer <=0 && !(game.paused)){ //only add a bullet if space is pressed and enough time has passed i.e. our timer has reached 0
 				addBullet();
 				if (game.soundStatus == "ON"){game.shootSound.play();}
@@ -539,16 +565,30 @@
 
 			for(m in game.enemies){																//bullet collision
 				for(p in game.projectiles){
-					if(BulletCollision(game.enemies[m], game.projectiles[p])){
+					if(Collision(game.enemies[m], game.projectiles[p])){
 						if(game.soundStatus == "ON"){game.enemyexplodeSound.play()};
 						game.enemies[m].dead = true;
 						game.score++;
 						game.levelScore++;
 						game.enemies[m].image = 3;
-						game.contextEnemies.clearRect(game.projectiles[p].x-game.projectiles[p].size*0.1, game.projectiles[p].y-game.projectiles[p].size*0.1, game.projectiles[p].size*1.1, game.projectiles[p].size*1.1);  
+						game.contextEnemies.clearRect(game.projectiles[p].x, game.projectiles[p].y, game.projectiles[p].size, game.projectiles[p].size*1.8);
 						game.projectiles.splice(p,1);
 						scores();
 					}
+				}
+			}
+
+			for(n in game.enprojectiles){						//enemy bullet collision
+				if(Collision(game.player, game.enprojectiles[n]) && !(game.gameOver)){
+							game.player.rendered = false;
+							game.player.image = 3;
+						if (game.soundStatus == "ON"){game.playerexplodeSound.play();}
+							game.lives--;
+							game.score = game.score - game.levelScore;
+							game.gameOver = true;
+							game.paused = true;
+							mouseIsDown = 0;
+							game.enprojectiles.splice(n,1);
 				}
 			}
 			
@@ -598,14 +638,21 @@
 			}
 			for(i in game.enemies){ //for each enemy
 				var enemy = game.enemies[i]; //all together now
-				game.contextEnemies.clearRect(enemy.x-enemy.width/2, enemy.y-enemy.height/4, enemy.width*2, enemy.height*2); //clear trails
+				game.contextEnemies.clearRect(enemy.x - enemy.width*0.1, enemy.y - enemy.height*0.1, enemy.width*1.8, enemy.height*1.1); //clear trails
 				game.contextEnemies.drawImage(game.images[enemy.image], enemy.x, enemy.y, enemy.width, enemy.height); //rendering
 			}
 			for(i in game.projectiles){ //for each bullet
 				var proj = game.projectiles[i];
-				game.contextEnemies.clearRect(proj.x-proj.size*0.2, proj.y-proj.size*0.2, proj.size*3, proj.size*3);
+				game.contextEnemies.clearRect(proj.x, proj.y, proj.size, proj.size*1.8);
 				game.contextEnemies.drawImage(game.images[proj.image], proj.x, proj.y, proj.size, proj.size);
 			}
+			for(i in game.enprojectiles){ //for each bullet
+				var enproj = game.enprojectiles[i];
+				game.contextEnemies.clearRect(enproj.x, enproj.y - enproj.size*0.5, enproj.size, enproj.size);
+				game.contextEnemies.drawImage(game.images[enproj.image], enproj.x, enproj.y, enproj.size, enproj.size);
+
+			}
+
 			if (game.gameOver && game.lives < 1){
 				game.contextPlayer.font = "bold " + game.width*0.08 + "px " + game.font;
 				game.contextPlayer.fillStyle = "#FF7F00";
@@ -723,6 +770,18 @@
 				image: 2
 			});
 		}
+
+		function addEnBullet(){ //add bullet function will be triggered every time space is pressed
+			xEn = game.enemies.length;
+			pEn = (xEn < 2) ? 0 : Math.floor(Math.random()*(xEn-1));
+
+			game.enprojectiles.push({
+				x: game.enemies[pEn].x + game.enemies[pEn].width*0.42,
+				y: game.enemies[pEn].y*1.55,
+				size: game.height*0.012,
+				image: 2
+			});
+		}
 		
 		function scores(){ 
 			game.contextText.fillStyle = "#FFD455";
@@ -741,19 +800,19 @@
 
 		}
 		
-		function BulletCollision(first, second){ //detecting rectangles' (image) collision, first is going to be the bullet, second will be the enemies. Note: the function itself can be applied to anything, 'first' and 'second' can be any variable as long as they have x and y values
+		function Collision(first, second){ //detecting rectangles' (image) collision, first is going to be the bullet, second will be the enemies. Note: the function itself can be applied to anything, 'first' and 'second' can be any variable as long as they have x and y values
 			return !(first.x > second.x + second.size ||
 				first.x + first.width < second.x ||
 				first.y > second.y + second.size ||
 				first.y + first.height < second.y);
 		}
 		
-		function EnemyCollision(first, second){ //detecting rectangles' (image) collision, first is going to be the bullet, second will be the enemies. Note: the function itself can be applied to anything, 'first' and 'second' can be any variable as long as they have x and y values
-			return !(first.x > second.x + second.width ||
-				first.x + first.width < second.x ||
-				first.y > second.y + second.height ||
-				first.y + first.height < second.y);
-		}
+		// function Collision(first, second){ //detecting rectangles' (image) collision, first is going to be the bullet, second will be the enemies. Note: the function itself can be applied to anything, 'first' and 'second' can be any variable as long as they have x and y values
+		// 	return !(first.x > second.x + second.width ||
+		// 		first.x + first.width < second.x ||
+		// 		first.y > second.y + second.height ||
+		// 		first.y + first.height < second.y);
+		// }
 		
 		function checkImages(){	//checking if all images have been loaded. Once all loaded run init
 			if(game.doneImages >= game.requiredImages){
