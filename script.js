@@ -50,15 +50,7 @@
 
 		var game = {}; //this is a global var which will contain other game vars
 		
-		game.stars = []; //this is an array which will contain our stars info: position in space and size
-		game.colours = ['red', //making the multiverse a bit more coloured, white stars will be more common when randomizing the array
-						'white', 'white', 'white', 'white', 'white', 'white', 'white', 'white', 'white',
-						'yellow', 'yellow',
-						'Purple',
-						'orange',
-						'pink']; 
-		
-		
+		game.stars = []; //this is an array which will contain our stars info: position in space and size		
 
 		
 		game.score = 0; //the game score
@@ -267,8 +259,8 @@
 				game.stars.push({ //push values to the game.stars array
 					x:Math.floor(Math.random() * game.width), //floor will round down x which will be a random number between 0 and 550
 					y:Math.floor(Math.random() * game.height),
-					size:Math.random()*5, //size of the stars
-					colour: game.colours[Math.floor(Math.random() * game.colours.length)]
+					size:Math.random()*game.width*0.003, //size of the stars
+					image: Math.floor(Math.random()*(19-14+1)+14) //returns a random number between and 
 				});
 			}
 			for(y = 0; y < game.level; y++) {	// y enemies vertically..
@@ -468,17 +460,17 @@
 				if((canvasX > (game.player.width/4) && canvasX <= (game.width - game.player.width/4)) && (canvasY > game.player.height) && canvasY <= (game.height - game.player.height/6)) {
 				
 				
-				moveRight1 = (canvasX > moveX && canvasX <= moveX + 1) ? true : false;
-				moveRight2 = (canvasX > moveX + 1 && canvasX <= moveX + 3) ? true : false;
-				moveRight3 = (canvasX > moveX + 3 && canvasX <= moveX + 5) ? true : false;
-				moveRight4 = (canvasX > moveX + 5 && canvasX <= moveX + 7) ? true : false;
-				moveRight5 = (canvasX > moveX + 7) ? true : false;
+				moveRight1 = (canvasX > moveX && canvasX <= moveX + 2) ? true : false;
+				moveRight2 = (canvasX > moveX + 2 && canvasX <= moveX + 4) ? true : false;
+				moveRight3 = (canvasX > moveX + 4 && canvasX <= moveX + 6) ? true : false;
+				moveRight4 = (canvasX > moveX + 6 && canvasX <= moveX + 8) ? true : false;
+				moveRight5 = (canvasX > moveX + 8) ? true : false;
 
-				moveLeft1 = (canvasX < moveX && canvasX >= moveX -1) ? true : false;
-				moveLeft2 = (canvasX < moveX - 1 && canvasX >= moveX -3) ? true : false;
-				moveLeft3 = (canvasX < moveX - 3 && canvasX >= moveX -5) ? true : false;
-				moveLeft4 = (canvasX < moveX - 5 && canvasX >= moveX -7) ? true : false;
-				moveLeft5 = (canvasX < moveX - 7) ? true : false;
+				moveLeft1 = (canvasX < moveX && canvasX >= moveX -2) ? true : false;
+				moveLeft2 = (canvasX < moveX - 2 && canvasX >= moveX -4) ? true : false;
+				moveLeft3 = (canvasX < moveX - 4 && canvasX >= moveX -6) ? true : false;
+				moveLeft4 = (canvasX < moveX - 6 && canvasX >= moveX -8) ? true : false;
+				moveLeft5 = (canvasX < moveX - 8) ? true : false;
 
 				game.player.x = canvasX-game.player.width/2;
 				game.player.y = canvasY-game.player.height*1.2;
@@ -679,8 +671,7 @@
 			//setting the fill color to white
 			for(i in game.stars){
 				var star = game.stars[i]; //adding a star var to simplify				
-				game.contextBackground.fillStyle= star.colour;
-				game.contextBackground.fillRect(star.x, star.y, star.size, star.size); //drawing the stars
+				game.contextBackground.drawImage(game.images[star.image],star.x, star.y, star.size, star.size); //drawing the stars
 			}
 			if(!game.player.rendered){ //if player not rendered i.e. rendered = false
 			game.contextPlayer.clearRect(0 , 0, game.width, game.height); //clear trails
@@ -807,8 +798,8 @@
 				game.stars.push({ //push values to the game.stars array
 					x:Math.floor(Math.random() * game.width), //floor will round down x which will be a random number between 0 and 550
 					y:game.height + 10, //+10 to spawn then outside the screen so players can't see them spawning
-					size:Math.random()*5,
-					colour: game.colours[Math.floor(Math.random() * game.colours.length)]	//size of the stars	
+					size: Math.random()*game.width*0.003,
+					image: Math.floor(Math.random()*(19-14+1)+14) // a random number between 14 and 18	
 				});
 			}
 		}
@@ -911,6 +902,13 @@
 			"_img/fighter/fighter_left3.png",
 			"_img/fighter/fighter_left4.png",
 			"_img/fighter/fighter_left5.png",
+			"_img/stars/star1.png",
+			"_img/stars/star2.png",
+			"_img/stars/star3.png",
+			"_img/stars/star4.png",
+			"_img/stars/star5.png",
+			"_img/stars/star6.png"
+
 		]);
 		
 		checkImages(); //this function call starts our game
