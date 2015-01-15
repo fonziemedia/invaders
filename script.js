@@ -1,7 +1,24 @@
 (function(game){ //keeping our code within a function so that variables are not accessible via console (prevent hacking)
 	$(document).ready(function(){ //using jquery $ and telling the computer to only run the below once the whole document(webpage) has loaded, this way our script doesn't need to be in the footer to run properly
 		
-		window.addEventListener('load', initInput, false);	//start listening to mouse & touch events	
+		// Check if a new cache is available on page load.
+		window.addEventListener('load', function(e) {
+
+		  window.applicationCache.addEventListener('updateready', function(e) {
+		    if (window.applicationCache.status == window.applicationCache.UPDATEREADY) {
+		      // Browser downloaded a new app cache.
+		      if (confirm('A new version of InVaDeRs is available. Load it?')) {
+		        window.location.reload();
+		      }
+		    } else {
+		      // Manifest didn't changed. Nothing new to server.
+		    }
+		  }, false);
+
+		}, false);
+
+		//start listening to mouse & touch events
+		window.addEventListener('load', initInput, false);	
 		
 		/* Connect to XML */
 
@@ -222,17 +239,21 @@
 		}
 		
 		function mouseXY(e) {
-			e.preventDefault();
+			if (e) {
+				e.preventDefault();
 			canvasX = e.pageX - canvas.offsetLeft;
 			canvasY = e.pageY - canvas.offsetTop;
 			//showPos();
+			}
 		}
 		 
 		function touchXY(e) {
-			e.preventDefault();
+			if (e) {
+				e.preventDefault();
 			canvasX = e.targetTouches[0].pageX - canvas.offsetLeft;
 			canvasY = e.targetTouches[0].pageY - canvas.offsetTop;
 			// showPos();
+			}
 		}
 		
 
@@ -328,7 +349,7 @@
 					game.downCount = 1;
 					game.leftCount = 1;
 					game.left = false;
-					game.enfullShootTimer = parseInt(X_EnGunSpeed[0].textContent.toString()) / game.level;
+					game.enfullShootTimer = parseInt(X_EnGunSpeed[0].textContent.toString()) * game.enemies.length / (game.level * game.enemies.length / 2);
 					game.enshootTimer = game.enfullShootTimer;
 					game.down = false;
 					game.contextBackground.clearRect(1, 1, game.width, game.height); 
@@ -590,7 +611,7 @@
 
 			for(c in game.enprojectiles){ //making each bullet fired move
 				game.enprojectiles[c].y+= parseInt(X_EnBulletSpeed[0].textContent.toString()) *game.height/1000 ; //bullet speed
-				if(game.enprojectiles[c].y >= game.height) { //if a bullet goes off the screen..
+				if(game.enprojectiles[c].y >= game.height+(game.height*0.05)) { //if a bullet goes off the screen..
 					game.enprojectiles.splice(c,1); // ..remove it from the array/memory
 					}
 			}
@@ -813,13 +834,13 @@
 			});
 		}
 
-		function addEnBullet(){ //add bullet function will be triggered every time space is pressed
+		function addEnBullet(){ //add bullet function will be triggered every few seconds
 			xEn = game.enemies.length;
-			pEn = (xEn < 2) ? 0 : Math.floor(Math.random()*(xEn-1));
+			pEn = (xEn < 2) ? 0 : Math.floor(Math.random()*((xEn-1)+1)); //a random number between 0 and the maximum array index (xEn-1)
 
 			game.enprojectiles.push({
 				x: game.enemies[pEn].x + game.enemies[pEn].width*0.42,
-				y: game.enemies[pEn].y*1.55,
+				y: game.enemies[pEn].y + game.enemies[pEn].height,
 				size: game.height*0.012,
 				image: 2
 			});
@@ -838,7 +859,7 @@
 			game.contextText.fillText("Hangar: ", game.width - (game.height*0.22), game.height*0.04); 
 			for (i = 0; i < game.lives; i++){
 				//printing lives
-				game.contextText.drawImage(game.images[game.player.image], ((i * game.height*0.03)+game.width - (game.height*0.12)), game.height*0.015, game.height*0.035, game.height*0.035);
+				game.contextText.drawImage(game.images[0], ((i * game.height*0.03)+game.width - (game.height*0.12)), game.height*0.015, game.height*0.035, game.height*0.035);
 			}
 
 		}
@@ -923,11 +944,12 @@ window.requestAnimFrame = (function(){  // Creating a request animAnimeFrame fun
 			window.oRequestAnimationFrame    ||
 			window.msRequestAnimationFrame    ||
 			function( callback ){
-			if (navigator.userAgent.match(/(iPod|iPhone|iPad|Android)/)) {
-				window.setTimeout(callback, 1000 / 30);
-			}	
-			else {
-				window.setTimeout(callback, 1000 / 60);
-			}				
+				// if (navigator.userAgent.match(/(iPod|iPhone|iPad|Android)/)) {
+				// 	window.setTimeout(callback, 1000 / 30);
+				// }	
+				// else {
+				// 	window.setTimeout(callback, 1000 / 60);
+				// }
+				window.setTimeout(callback, 1000 / 60);			
 			};
 })();

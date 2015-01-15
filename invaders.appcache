@@ -1,0 +1,44 @@
+CACHE MANIFEST
+# 2015-01-14 v1.0.26
+
+# Explicitly cached entries
+index.html
+style.css
+script.js
+
+FALLBACK:
+# The FALLBACK section below specifies that "offline.html" will be served in place of all files in the /html/ catalog, in case an internet connection cannot be established
+# /html/ /offline.html
+
+NETWORK:
+*
+
+# Additional resources to cache
+CACHE:
+_img/explosion.png
+_img/enemy.png
+_img/bullet.png
+_img/stars/star1.png
+_img/stars/star2.png
+_img/stars/star3.png
+_img/stars/star4.png
+_img/stars/star5.png
+_img/stars/star6.png
+_img/fighter/fighter.png
+_img/fighter/fighter_left1.png
+_img/fighter/fighter_left2.png
+_img/fighter/fighter_left3.png
+_img/fighter/fighter_left4.png
+_img/fighter/fighter_left5.png
+_img/fighter/fighter_right1.png
+_img/fighter/fighter_right2.png
+_img/fighter/fighter_right3.png
+_img/fighter/fighter_right4.png
+_img/fighter/fighter_right5.png
+
+
+# Updating the cache
+#
+# Once an application is offline it remains cached until one of the following happens:
+# 	-The user clears their browser's data storage for your site.
+# 	-The manifest file (this file) is modified. Note: updating a file listed in the manifest doesn't mean the browser will re-cache that resource. The manifest file itself must be altered.
