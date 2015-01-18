@@ -1,21 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <game>
-	<settings>
-		<sound type="boolean">0</sound>
-		<level type="int">1</level>
-		<player-lives type="int">3</player-lives>
-		<player-speed type="int">5</player-speed>
-		<enemy-speed type="int">10</enemy-speed> <!-- relative to screen height -->
-		<reload-time type="int">20</reload-time> <!-- lower is faster -->
-		<enreload-time type="int">100</enreload-time> <!-- lower is faster -->		
-		<bullet-speed type="int">10</bullet-speed>
-		<enbullet-speed type="int">5</enbullet-speed>		
-	</settings>
-	
-	<intro>
-		<title type="string">InVaDeRs!</title>
-		<subtitle type="string">No one knew they were coming...</subtitle>
-		<dt-start type="string">Press <i>Enter</i> or <i>LMB</i> to start</dt-start>
-		<mb-start type="string">Tap screen to start</mb-start>
-	</intro>
+	<data>
+		<settings>
+			<sound type="int">0</sound>
+			<level type="int">1</level>
+			<player-lives type="int">3</player-lives>
+			<player-speed type="int">5</player-speed>
+			<enemy-speed type="int">10</enemy-speed> <!-- relative to screen height -->
+			<reload-time type="int">20</reload-time> <!-- lower is faster -->
+			<enreload-time type="int">100</enreload-time> <!-- lower is faster -->		
+			<bullet-speed type="int">10</bullet-speed>
+			<enbullet-speed type="int">5</enbullet-speed>		
+		</settings>
+		<intro>
+			<title type="string">InVaDeRs!</title>
+			<subtitle type="string">No one knew they were coming...</subtitle>
+			<dt-start type="string">Press <i>Enter</i> or <i>LMB</i> to start</dt-start>
+			<mb-start type="string">Tap screen to start</mb-start>
+		</intro>
+	</data>
 </game>

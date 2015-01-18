@@ -20,47 +20,38 @@
 		//start listening to mouse & touch events
 		window.addEventListener('load', initInput, false);	
 		
-		/* Connect to XML */
-
-		// Create a connection to the file.
-		var Connect = new XMLHttpRequest();
-
-		// Define which file to open and
-		// send the request.
-		Connect.open("GET", "game.xml", false);
-		Connect.setRequestHeader("Content-Type", "text/xml");
-		Connect.send(null);
-
-		// Place the response in an XML document.
-		var TheDocument = Connect.responseXML;
-
-		// Place the root node in an element.
-		var X_Game = TheDocument.childNodes[0];
-
-
-
-		// Retrieve each Xml_Intro in turn.
-		var X_Settings = X_Game.children[0];
-		var X_Intro = X_Game.children[1];
-		  
-		   // SETTINGS Values
-		var X_Sound = X_Settings.getElementsByTagName("sound");
-		var X_Level = X_Settings.getElementsByTagName("level");
-		var X_Lives = X_Settings.getElementsByTagName("player-lives");
-		var X_PlayerSpeed = X_Settings.getElementsByTagName("player-speed");
-		var X_EnemySpeed = X_Settings.getElementsByTagName("enemy-speed");
-		var X_GunSpeed = X_Settings.getElementsByTagName("reload-time");
-		var X_EnGunSpeed = X_Settings.getElementsByTagName("enreload-time");		
-		var X_BulletSpeed = X_Settings.getElementsByTagName("bullet-speed");
-		var X_EnBulletSpeed = X_Settings.getElementsByTagName("enbullet-speed");
-
-
-		   // INTRO Text
-		var X_Title = X_Intro.getElementsByTagName("title");
-		var X_Subtitle = X_Intro.getElementsByTagName("subtitle");
-		var X_dt_Start = X_Intro.getElementsByTagName("dt-start");
-		var X_mb_Start = X_Intro.getElementsByTagName("mb-start");
-
+		
+		// /* Connect to XML */
+		$.ajax({
+		type: "GET",
+		url: "game.xml",
+		dataType: "xml",
+		async: false,
+		success: function(xmldata) {
+			$(xmldata).find('data').each(function(){
+				// SETTINGS
+				X_Sound = $(this).find('sound').text();
+				X_Level = $(this).find('level').text();
+				X_Lives = $(this).find('player-lives').text();
+				X_PlayerSpeed = $(this).find('player-speed').text();
+				X_EnemySpeed = $(this).find('enemy-speed').text();
+				X_GunSpeed = $(this).find('reload-time').text();
+				X_EnGunSpeed = $(this).find('enreload-time').text();
+				X_BulletSpeed = $(this).find('bullet-speed').text();
+				X_EnBulletSpeed = $(this).find('enbullet-speed').text();
+				X_EnBullet = $(this).find('enbullet-speed').text();
+				X_EnBulletSpeed = $(this).find('enbullet-speed').text();
+				// INTRO TEXT
+				X_Title = $(this).find('title').text();
+				X_Subtitle = $(this).find('subtitle').text();
+				X_dt_Start = $(this).find('dt-start').text();
+				X_mb_Start = $(this).find('mb-start').text();
+			})
+		},
+		error: function() {
+			alert("The XML File could not be processed correctly.");
+		}
+		});
 
 
 		/*THE GAME*/
@@ -73,9 +64,9 @@
 		game.score = 0; //the game score
 		game.levelScore = 0; //the score for each level
 		
-		game.level = parseInt(X_Level[0].textContent.toString()); //starting at level X...
+		game.level = X_Level; //starting at level X...
 		
-		game.lives = parseInt(X_Lives[0].textContent.toString()); //with X ships (lives)
+		game.lives = X_Lives; //with X ships (lives)
 		
 		game.keys = []; //the keyboard array
 		
@@ -90,7 +81,7 @@
 		
 		//========================== Audio ==========================
 		
-		game.sound = parseInt(X_Sound[0].textContent.toString());
+		game.sound = parseInt(X_Sound);
 
 		game.enemyexplodeSound = new Audio("_sounds/explosion.wav");
 		game.playerexplodeSound = new Audio("_sounds/blast.mp3");
@@ -104,7 +95,7 @@
 		game.images = [];
 		game.doneImages  = 0; // will contain how many images have been loaded
 		game.requiredImages = 0; // will contain how many images should be loaded
-		
+		game.font = (navigator.userAgent.match(/(iPod|iPhone|iPad|Android)/)) ? "Helvetica" : "Monaco";
 		
 		//====================== Game state ========================
 		
@@ -156,7 +147,7 @@
 					y: game.height*0.90,
 					width: game.height*0.08,
 					height: game.height*0.08,
-					speed: parseInt(X_PlayerSpeed[0].textContent.toString()),
+					speed: X_PlayerSpeed,
 					image: 0,
 					rendered: false,
 					crashed: false					
@@ -164,15 +155,15 @@
 				
 				//======================  Game settings =====================		
 				
-				game.enemySpeed = parseInt(X_EnemySpeed[0].textContent.toString()) * game.height/2500; //the enemies' speed
+				game.enemySpeed = X_EnemySpeed * game.height/2500; //the enemies' speed
 				game.leftCount = 1; //game timers for making enemies move left-right and charge down
 				game.downCount = 1;
 				game.downDivision = 600; //the higher the level the slower the enemies come down
 				game.leftDivision = parseInt(game.width*0.20);
 				game.left = false;
 				game.down = false;
-				game.fullShootTimer = parseInt(X_GunSpeed[0].textContent.toString());	//this timer will limit the number of bullets being fired
-				game.enfullShootTimer = parseInt(X_EnGunSpeed[0].textContent.toString());	//this timer will limit the number of bullets being fired by enemies
+				game.fullShootTimer = X_GunSpeed;	//this timer will limit the number of bullets being fired
+				game.enfullShootTimer = X_EnGunSpeed;	//this timer will limit the number of bullets being fired by enemies
 				game.shootTimer = game.fullShootTimer;
 				game.enshootTimer = game.enfullShootTimer;								
 			}
@@ -340,16 +331,16 @@
 					game.gameOver = false;	
 					game.gameWon = false;
 					if (game.lives < 1 || game.level >=7){
-						game.level = parseInt(X_Level[0].textContent.toString());
+						game.level = X_Level;
 						game.score = 0;
-						game.lives = parseInt(X_Lives[0].textContent.toString());
+						game.lives = X_Lives;
 						game.downDivision = Math.floor((300 * game.level)); //the higher the level the slower the enemies come down
 						game.leftDivision = parseInt((game.width*0.25)-((game.width*0.035)*game.level)); 
 					}
 					game.downCount = 1;
 					game.leftCount = 1;
 					game.left = false;
-					game.enfullShootTimer = parseInt(X_EnGunSpeed[0].textContent.toString()) * game.enemies.length / (game.level * game.enemies.length / 2);
+					game.enfullShootTimer = X_EnGunSpeed * game.enemies.length / (game.level * game.enemies.length / 2);
 					game.enshootTimer = game.enfullShootTimer;
 					game.down = false;
 					game.contextBackground.clearRect(1, 1, game.width, game.height); 
@@ -379,7 +370,7 @@
 						y: game.height*0.90,
 						width: game.height*0.08,
 						height: game.height*0.08,
-						speed: parseInt(X_PlayerSpeed[0].textContent.toString()),
+						speed: X_PlayerSpeed,
 						image: 0,
 						rendered: false,
 						crashed: false					
@@ -398,7 +389,7 @@
 					game.leftDivision = parseInt((game.width*0.25)-((game.width*0.035)*game.level)); //the time it takes for enemies to turn: it's 25% of the witdth (the smaller the screen the faster they turn) minus a proportionate percentage per game level (25% - 3.5% per each level, because the more enemies on screen the faster they need to turn to keep them on screen.
 					game.left = false;
 					game.down = false;
-					game.enfullShootTimer = parseInt(X_EnGunSpeed[0].textContent.toString()) / game.level;
+					game.enfullShootTimer = X_EnGunSpeed / game.level;
 					game.enshootTimer = game.enfullShootTimer;
 					game.contextBackground.clearRect(1, 1, game.width, game.height); 
 					game.contextPlayer.clearRect(1, 1, game.width, game.height); 
@@ -428,7 +419,7 @@
 						y: game.height*0.90,
 						width: game.height*0.08,
 						height: game.height*0.08,
-						speed: parseInt(X_PlayerSpeed[0].textContent.toString()),
+						speed: X_PlayerSpeed,
 						image: 0,
 						rendered: false,
 						crashed: false					
@@ -603,15 +594,15 @@
 			}
 						
 			for(i in game.projectiles){ //making each bullet fired move
-				game.projectiles[i].y-= parseInt(X_BulletSpeed[0].textContent.toString()) *game.height/1000 ; //bullet speed
+				game.projectiles[i].y-= X_BulletSpeed * game.height/1000 ; //bullet speed
 				if(game.projectiles[i].y <= -game.projectiles[i].size*2){ //if a bullet goes off the screen..
 					game.projectiles.splice(i,1); // ..remove it from the array/memory
 					}
 			}
 
 			for(c in game.enprojectiles){ //making each bullet fired move
-				game.enprojectiles[c].y+= parseInt(X_EnBulletSpeed[0].textContent.toString()) *game.height/1000 ; //bullet speed
-				if(game.enprojectiles[c].y >= game.height+(game.height*0.05)) { //if a bullet goes off the screen..
+				game.enprojectiles[c].y+= X_EnBulletSpeed * game.height/1000 ; //bullet speed
+				if(game.enprojectiles[c].y >= game.height + (game.height*0.05)) { //if a bullet goes off the screen..
 					game.enprojectiles.splice(c,1); // ..remove it from the array/memory
 					}
 			}
@@ -685,8 +676,6 @@
 		//====================== Render functions =================//
 		
 		function render(){ //rendering to the screen
-
-			game.font = (navigator.userAgent.match(/(iPod|iPhone|iPad|Android)/)) ? "Helvetica" : "Monaco";
 
 			game.contextBackground.clearRect(0, 0, game.width, game.height); //clearing the star 'trails'
 			//setting the fill color to white
@@ -881,17 +870,17 @@
 		function checkImages(){	//checking if all images have been loaded. Once all loaded run init
 			if(game.doneImages >= game.requiredImages){
 				game.contextBackground.clearRect(0, 0, game.width, game.height);
-				game.contextBackground.font = "bold " + game.width*0.12 + "px " + game.font; //Intro screen
+				game.contextBackground.font = "bold " + game.width*0.11 + "px " + game.font; //Intro screen
 				game.contextBackground.fillStyle = "purple";				
-				game.contextBackground.fillText(X_Title[0].textContent.toString(), game.width*0.215, game.height*0.40);
-				game.contextBackground.font = "bold " + game.width*0.06 + "px " + game.font; 
+				game.contextBackground.fillText(X_Title, game.width*0.2, game.height*0.40);
+				game.contextBackground.font = "bold " + game.width*0.04 + "px " + game.font; 
 				game.contextBackground.fillStyle = "#FFD455";
-				game.contextBackground.fillText(X_Subtitle[0].textContent.toString(), game.width*0.08, game.height*0.50);
+				game.contextBackground.fillText(X_Subtitle, game.width*0.1, game.height*0.55);
 				game.contextBackground.fillStyle = "white";
 				if (navigator.userAgent.match(/(iPod|iPhone|iPad|Android)/)) {
-					game.contextBackground.fillText(X_mb_Start[0].textContent.toString(), game.width*0.26, game.height*0.60);
+					game.contextBackground.fillText(X_mb_Start, game.width*0.25, game.height*0.65);
 				} else {
-					game.contextBackground.fillText(X_dt_Start[0].textContent.toString(), game.width*0.14, game.height*0.65);
+					game.contextBackground.fillText(X_dt_Start, game.width*0.1, game.height*0.70);
 				}
 				init(); //after checking images run init()
 			}else{
