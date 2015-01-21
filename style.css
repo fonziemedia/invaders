@@ -1,3 +1,9 @@
+/* warp speed ahead */
+.animClass {
+	-webkit-transform: translate3d(0, 0, 0);
+	/* more specific animation properties here */
+}
+
 @font-face {
     font-family: 'Lucida Console', Monaco, monospace;
 }

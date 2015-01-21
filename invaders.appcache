@@ -1,10 +1,11 @@
 CACHE MANIFEST
-# 2015-01-14 v1.0.264332
+# 2015-01-14 v1.0.2
 
 # Explicitly cached entries
 index.html
 style.css
 script.js
+game.xml
 
 FALLBACK:
 # The FALLBACK section below specifies that "offline.html" will be served in place of all files in the /html/ catalog, in case an internet connection cannot be established
@@ -15,9 +16,9 @@ NETWORK:
 
 # Additional resources to cache
 CACHE:
-_img/explosion.png
+_img/explosion.gif
 _img/enemy.png
-_img/bullet.png
+_img/laser.gif
 _img/stars/star1.png
 _img/stars/star2.png
 _img/stars/star3.png
@@ -35,7 +36,7 @@ _img/fighter/fighter_right2.png
 _img/fighter/fighter_right3.png
 _img/fighter/fighter_right4.png
 _img/fighter/fighter_right5.png
-
+_img/missile.gif
 
 # Updating the cache
 #

@@ -7,7 +7,7 @@
 			<player-lives type="int">3</player-lives>
 			<player-speed type="int">5</player-speed>
 			<enemy-speed type="int">10</enemy-speed> <!-- relative to screen height -->
-			<reload-time type="int">20</reload-time> <!-- lower is faster -->
+			<reload-time type="int">15</reload-time> <!-- lower is faster -->
 			<enreload-time type="int">100</enreload-time> <!-- lower is faster -->		
 			<bullet-speed type="int">10</bullet-speed>
 			<enbullet-speed type="int">5</enbullet-speed>		

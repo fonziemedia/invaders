@@ -30,17 +30,15 @@
 		success: function(xmldata) {
 			$(xmldata).find('data').each(function(){
 				// SETTINGS
-				X_Sound = $(this).find('sound').text();
-				X_Level = $(this).find('level').text();
-				X_Lives = $(this).find('player-lives').text();
-				X_PlayerSpeed = $(this).find('player-speed').text();
-				X_EnemySpeed = $(this).find('enemy-speed').text();
-				X_GunSpeed = $(this).find('reload-time').text();
-				X_EnGunSpeed = $(this).find('enreload-time').text();
-				X_BulletSpeed = $(this).find('bullet-speed').text();
-				X_EnBulletSpeed = $(this).find('enbullet-speed').text();
-				X_EnBullet = $(this).find('enbullet-speed').text();
-				X_EnBulletSpeed = $(this).find('enbullet-speed').text();
+				X_Sound = parseInt($(this).find('sound').text());
+				X_Level = parseInt($(this).find('level').text());
+				X_Lives = parseInt($(this).find('player-lives').text());
+				X_PlayerSpeed = parseInt($(this).find('player-speed').text());
+				X_EnemySpeed = parseInt($(this).find('enemy-speed').text());
+				X_GunSpeed = parseInt($(this).find('reload-time').text());
+				X_EnGunSpeed = parseInt($(this).find('enreload-time').text());
+				X_BulletSpeed = parseInt($(this).find('bullet-speed').text());
+				X_EnBulletSpeed = parseInt($(this).find('enbullet-speed').text());
 				// INTRO TEXT
 				X_Title = $(this).find('title').text();
 				X_Subtitle = $(this).find('subtitle').text();
@@ -81,7 +79,7 @@
 		
 		//========================== Audio ==========================
 		
-		game.sound = parseInt(X_Sound);
+		game.sound = X_Sound;
 
 		game.enemyexplodeSound = new Audio("_sounds/explosion.wav");
 		game.playerexplodeSound = new Audio("_sounds/blast.mp3");
@@ -145,17 +143,19 @@
 				game.player = {	//creating our player
 					x: game.width*0.46,
 					y: game.height*0.90,
-					width: game.height*0.08,
-					height: game.height*0.08,
+					size: game.height*0.08,
 					speed: X_PlayerSpeed,
+					bulletspeed: X_BulletSpeed*game.height/1000,
 					image: 0,
 					rendered: false,
 					crashed: false					
 				};
 				
-				//======================  Game settings =====================		
-				
+				//the below needs width and height defined, thus we put it here	
+
+				//======================  Game settings =====================				
 				game.enemySpeed = X_EnemySpeed * game.height/2500; //the enemies' speed
+				game.EnBulletSpeed = X_EnBulletSpeed * game.height/1000;
 				game.leftCount = 1; //game timers for making enemies move left-right and charge down
 				game.downCount = 1;
 				game.downDivision = 600; //the higher the level the slower the enemies come down
@@ -165,11 +165,17 @@
 				game.fullShootTimer = X_GunSpeed;	//this timer will limit the number of bullets being fired
 				game.enfullShootTimer = X_EnGunSpeed;	//this timer will limit the number of bullets being fired by enemies
 				game.shootTimer = game.fullShootTimer;
-				game.enshootTimer = game.enfullShootTimer;								
+				game.enshootTimer = game.enfullShootTimer;
+
+				//=========================== Game loading Screen =================================== 	
+				game.contextBackground.font = "bold " + game.width*0.08 + "px " + game.font; 
+				game.contextBackground.fillStyle = "white";
+				game.contextBackground.fillText("Loading...", game.width*0.30, game.height*0.47);
 			}
 
 			//Initial call 
 			respondCanvas();
+
 
 		}); 
 		
@@ -279,9 +285,8 @@
 				for(x = 0; x < game.level; x++){ // ..by x horizontally
 					game.enemies.push({ //adding value to the game.enemies array
 						x: game.width*0.15  + (x*(game.width*0.15)) ,  //setting positions (1st bit) and making space between enemies (2nd bit)
-						y: game.height*0.10 + y*(game.player.height),
-						width: game.height*0.06, //the size of our enemies
-						height: game.height*0.06,
+						y: game.height*0.10 + y*(game.player.size),
+						size: game.height*0.06, //the size of our enemies
 						image: 1, //their ships...
 						dead: false,
 						deadTime: 20
@@ -355,9 +360,8 @@
 						for(x = 0; x < game.level; x++){ // ..by x horizontally
 							game.enemies.push({ //adding value to the game.enemies array
 								x: game.width*0.05  + (x*(game.width*0.15)) ,  //setting positions (1st bit) and making space between enemies (2nd bit)
-								y: game.height*0.10 + y*(game.player.height),
-								width: game.height*0.06, //the size of our enemies
-								height: game.height*0.06,
+								y: game.height*0.10 + y*(game.player.size),
+								size: game.height*0.06, //the size of our enemies
 								image: 1, //their ships...
 								dead: false,
 								deadTime: 20
@@ -368,9 +372,9 @@
 					game.player = {	//creating our player
 						x: game.width*0.46,
 						y: game.height*0.90,
-						width: game.height*0.08,
-						height: game.height*0.08,
+						size: game.height*0.08,
 						speed: X_PlayerSpeed,
+						bulletspeed: X_BulletSpeed*game.height/1000,
 						image: 0,
 						rendered: false,
 						crashed: false					
@@ -404,9 +408,8 @@
 						for(x = 0; x < game.level; x++){ // ..by x horizontally
 							game.enemies.push({ //adding value to the game.enemies array
 								x: game.width*0.05  + (x*(game.width*0.15)) ,  //setting start spawning position according to width (1st bit) and making space between enemies (2nd bit)
-								y: game.height*0.10 + y*(game.player.height),
-								width: game.height*0.06, //the size of our enemies
-								height: game.height*0.06,
+								y: game.height*0.10 + y*(game.player.size),
+								size: game.height*0.06, //the size of our enemies
 								image: 1, //their ships...
 								dead: false,
 								deadTime: 20
@@ -417,9 +420,9 @@
 					game.player = {	//reseting our player
 						x: game.width*0.46,
 						y: game.height*0.90,
-						width: game.height*0.08,
-						height: game.height*0.08,
+						size: game.height*0.08,
 						speed: X_PlayerSpeed,
+						bulletspeed: X_BulletSpeed*game.height/1000,
 						image: 0,
 						rendered: false,
 						crashed: false					
@@ -469,7 +472,7 @@
 			
 			if (mouseIsDown && !(game.paused) && !(game.gameOver) && !(game.gameWon)) {
 				
-				if((canvasX > (game.player.width/4) && canvasX <= (game.width - game.player.width/4)) && (canvasY > game.player.height) && canvasY <= (game.height - game.player.height/6)) {
+				if((canvasX > (game.player.size/4) && canvasX <= (game.width - game.player.size/4)) && (canvasY > game.player.size) && canvasY <= (game.height - game.player.size/6)) {
 				
 				
 				moveRight1 = (canvasX > moveX && canvasX <= moveX + 2) ? true : false;
@@ -484,8 +487,8 @@
 				moveLeft4 = (canvasX < moveX - 6 && canvasX >= moveX -8) ? true : false;
 				moveLeft5 = (canvasX < moveX - 8) ? true : false;
 
-				game.player.x = canvasX-game.player.width/2;
-				game.player.y = canvasY-game.player.height*1.2;
+				game.player.x = canvasX-game.player.size/2;
+				game.player.y = canvasY-game.player.size*1.2;
 				
 				if (moveRight1) {
 					game.player.image = 4;
@@ -526,24 +529,27 @@
 				game.player.rendered = false;
 			}
 			
-			if(game.keys[37] || game.keys[65] && !(game.gameOver) && !(game.gameWon)){ //if key pressed..
-				
-					if(game.player.x > game.player.width/50){ // (keeping it within the boundaries of our canvas)
+			//left
+			if(game.keys[37] || game.keys[65] && !(game.gameOver) && !(game.gameWon)){ //if key pressed..				
+					if(game.player.x > game.player.size/50){ // (keeping it within the boundaries of our canvas)
 					game.player.x-=game.player.speed; //..do this
+					game.player.image = 13;
 					game.player.rendered = false;
 			}}
+			//right
 			if(game.keys[39] || game.keys[68] && !(game.gameOver) && !(game.gameWon)){
-					if(game.player.x <= game.width - game.player.width){
+					if(game.player.x <= game.width - game.player.size){
 					game.player.x+=game.player.speed;
+					game.player.image = 8;
 					game.player.rendered = false;
 			}}
 			if(game.keys[38] || game.keys[87] && !(game.gameOver) && !(game.gameWon)){
-					if(game.player.y > game.player.height/12){
+					if(game.player.y > game.player.size/12){
 					game.player.y-=game.player.speed;
 					game.player.rendered = false;
 			}}
 			if(game.keys[40] || game.keys[83] && !(game.gameOver) && !(game.gameWon)){
-					if(game.player.y <= game.height - game.player.height){
+					if(game.player.y <= game.height - game.player.size){
 					game.player.y+=game.player.speed;
 					game.player.rendered = false;
 				}	
@@ -570,46 +576,34 @@
 					game.enemies[i].y+=game.enemySpeed;
 				}
 				
-				if((game.enemies[i].y >= game.height - (game.player.height)) && !(game.gameOver)) {			//if shit hits the fan
-					game.player.rendered = false;
-					game.player.image = 3;
-					if (game.soundStatus == "ON"){game.playerexplodeSound.play();}
-					game.lives--;
-					game.score = game.score - game.levelScore;
-					game.gameOver = true;
-					game.paused = true;
-					mouseIsDown = 0;  
-					}
-				
-				if(Collision(game.enemies[i], game.player) && !(game.gameOver)){				//if player hits enemies and vice-versa
-					game.player.rendered = false;
-					game.player.image = 3;
-					if (game.soundStatus == "ON"){game.playerexplodeSound.play();}
-					game.lives--;
-					game.score = game.score - game.levelScore;
-					game.gameOver = true;
-					game.paused = true;
-					mouseIsDown = 0;
+				//enemy breaching defenses (shit hits the fan)
+				if((game.enemies[i].y >= game.height - (game.player.size)) && !(game.gameOver)) {
+					PlayerDie(); 
 				}
+				
+				//player-enemy collision
+				if(Collision(game.player, game.enemies[i]) && !(game.gameOver)){				
+					PlayerDie(); 
+				}
+
+				if(game.enemies[i].image == 1 && game.enemies.length > 0 && game.enshootTimer <=0 && !(game.paused)){ //only add a bullet if space is pressed and enough time has passed i.e. our timer has reached 0
+				addEnBullet();
+				game.enshootTimer = game.enfullShootTimer; //resetting our timer back to 15
+			}
 			}
 						
 			for(i in game.projectiles){ //making each bullet fired move
-				game.projectiles[i].y-= X_BulletSpeed * game.height/1000 ; //bullet speed
+				game.projectiles[i].y-= game.player.bulletspeed; //bullet speed
 				if(game.projectiles[i].y <= -game.projectiles[i].size*2){ //if a bullet goes off the screen..
 					game.projectiles.splice(i,1); // ..remove it from the array/memory
 					}
 			}
 
 			for(c in game.enprojectiles){ //making each bullet fired move
-				game.enprojectiles[c].y+= X_EnBulletSpeed * game.height/1000 ; //bullet speed
+				game.enprojectiles[c].y+= game.EnBulletSpeed; //bullet speed
 				if(game.enprojectiles[c].y >= game.height + (game.height*0.05)) { //if a bullet goes off the screen..
 					game.enprojectiles.splice(c,1); // ..remove it from the array/memory
 					}
-			}
-
-			if(game.enemies.length > 0 && game.enshootTimer <=0 && !(game.paused)){ //only add a bullet if space is pressed and enough time has passed i.e. our timer has reached 0
-				addEnBullet();
-				game.enshootTimer = game.enfullShootTimer; //resetting our timer back to 15
 			}
 
 			if((game.keys[32] || mouseIsDown) && game.shootTimer <=0 && !(game.paused)){ //only add a bullet if space is pressed and enough time has passed i.e. our timer has reached 0
@@ -618,42 +612,38 @@
 				game.shootTimer = game.fullShootTimer; //resetting our timer back to 15
 			}	
 
-			for(m in game.enemies){																//bullet collision
+			//player bullet collision
+			for(m in game.enemies){																
 				for(p in game.projectiles){
-					if(Collision(game.enemies[m], game.projectiles[p])){
+					if(Collision(game.enemies[m], game.projectiles[p]) && game.enemies[m].image == 1){ //image check avoids ghost scoring
 						if(game.soundStatus == "ON"){game.enemyexplodeSound.play()};
 						game.enemies[m].dead = true;
 						game.score++;
 						game.levelScore++;
 						game.enemies[m].image = 3;
-						game.contextEnemies.clearRect(game.projectiles[p].x, game.projectiles[p].y, game.projectiles[p].size, game.projectiles[p].size*1.8);
+						// game.contextEnemies.clearRect(game.projectiles[p].x, game.projectiles[p].y, game.projectiles[p].size, game.projectiles[p].size*1.8);
 						game.projectiles.splice(p,1);
 						scores();
 					}
 				}
 			}
 
-			for(n in game.enprojectiles){						//enemy bullet collision
+			//enemy bullet collision
+			for(n in game.enprojectiles){						
 				if(Collision(game.player, game.enprojectiles[n]) && !(game.gameOver)){
-							game.player.rendered = false;
-							game.player.image = 3;
-						if (game.soundStatus == "ON"){game.playerexplodeSound.play();}
-							game.lives--;
-							game.score = game.score - game.levelScore;
-							game.gameOver = true;
-							game.paused = true;
-							mouseIsDown = 0;
-							game.enprojectiles.splice(n,1);
+					PlayerDie();
+					game.enprojectiles.splice(n,1);
 				}
 			}
 			
+
 			for (i in game.enemies){
 				if(game.enemies[i].dead){
 					game.enemies[i].deadTime--; //making dead enemies go away after a few secs
 				}
 				if (game.enemies[i].dead && game.enemies[i].deadTime <= 0){
-					game.contextEnemies.clearRect(game.enemies[i].x-game.enemies[i].width*0.1, game.enemies[i].y-game.enemies[i].height*0.1, game.enemies[i].width*2.1, game.enemies[i].height*2.1);
-					game.enemies.splice(i,1);
+					game.contextEnemies.clearRect(game.enemies[i].x-game.enemies[i].size*0.1, game.enemies[i].y-game.enemies[i].size*0.1, game.enemies[i].size*2.1, game.enemies[i].size*2.1);
+					game.enemies.splice(i,1);	
 				}
 			}
 			
@@ -683,25 +673,27 @@
 				var star = game.stars[i]; //adding a star var to simplify				
 				game.contextBackground.drawImage(game.images[star.image],star.x, star.y, star.size, star.size); //drawing the stars
 			}
+
+			//SPEED GIVE ME WHAT I NEED
 			if(!game.player.rendered){ //if player not rendered i.e. rendered = false
 			game.contextPlayer.clearRect(0 , 0, game.width, game.height); //clear trails
-			game.contextPlayer.drawImage(game.images[game.player.image], game.player.x, game.player.y, game.player.width, game.player.height); //rendering
+			game.contextPlayer.drawImage(game.images[game.player.image], game.player.x, game.player.y, game.player.size, game.player.size); //rendering
 			game.player.rendered = true;
 			}
 			for(i in game.enemies){ //for each enemy
 				var enemy = game.enemies[i]; //all together now
-				game.contextEnemies.clearRect(enemy.x - enemy.width*0.1, enemy.y - enemy.height*0.1, enemy.width*1.8, enemy.height*1.1); //clear trails
-				game.contextEnemies.drawImage(game.images[enemy.image], enemy.x, enemy.y, enemy.width, enemy.height); //rendering
+				game.contextEnemies.clearRect(enemy.x - enemy.size*0.1, enemy.y - enemy.size*0.1, enemy.size*1.8, enemy.size*1.1); //clear trails
+				game.contextEnemies.drawImage(game.images[enemy.image], enemy.x, enemy.y, enemy.size, enemy.size); //rendering
 			}
 			for(i in game.projectiles){ //for each bullet
 				var proj = game.projectiles[i];
-				game.contextEnemies.clearRect(proj.x, proj.y, proj.size, proj.size*1.8);
-				game.contextEnemies.drawImage(game.images[proj.image], proj.x, proj.y, proj.size, proj.size);
+				game.contextPlayer.clearRect(proj.x, proj.y + game.player.bulletspeed, proj.size, proj.size);
+				game.contextPlayer.drawImage(game.images[proj.image], proj.x, proj.y, proj.size, proj.size);
 			}
 			for(i in game.enprojectiles){ //for each bullet
 				var enproj = game.enprojectiles[i];
-				game.contextEnemies.clearRect(enproj.x, enproj.y - enproj.size*0.5, enproj.size, enproj.size);
-				game.contextEnemies.drawImage(game.images[enproj.image], enproj.x, enproj.y, enproj.size, enproj.size);
+				game.contextPlayer.clearRect(enproj.x, enproj.y - game.EnBulletSpeed, enproj.size, enproj.size);
+				game.contextPlayer.drawImage(game.images[enproj.image], enproj.x, enproj.y, enproj.size, enproj.size);
 
 			}
 
@@ -710,7 +702,7 @@
 				game.contextPlayer.fillStyle = "#FF7F00";
 				game.contextPlayer.fillText("Game Over", game.width*0.30, game.height*0.42);
 				game.contextPlayer.font = "bold " + game.width*0.06 + "px " + game.font;
-				game.contextPlayer.fillText(game.levelScore + " enemy ships destroyed", game.width*0.19, game.height*0.52);
+				game.contextPlayer.fillText(game.score + " enemy ships destroyed", game.width*0.19, game.height*0.52);
 				game.contextPlayer.font = "bold " + game.width*0.04 + "px " + game.font;
 				game.contextPlayer.fillStyle = "white";
 				if (navigator.userAgent.match(/(iPod|iPhone|iPad|Android)/)) {
@@ -760,7 +752,7 @@
 				game.contextPlayer.fillStyle = "#CC99FF";
 				game.contextPlayer.fillText("Victory!", game.width*0.35, game.height*0.42);
 				game.contextPlayer.font = "bold " + game.width*0.06 + "px " + game.font;
-				game.contextPlayer.fillText(game.levelScore + " enemy ships destroyed", game.width*0.17, game.height*0.52);
+				game.contextPlayer.fillText(game.score + " enemy ships destroyed", game.width*0.17, game.height*0.52);
 				game.contextPlayer.font = "bold " + game.width*0.04 + "px " + game.font;
 				game.contextPlayer.fillStyle = "white";
 				if (navigator.userAgent.match(/(iPod|iPhone|iPad|Android)/)) {
@@ -816,9 +808,9 @@
 		
 		function addBullet(){ //add bullet function will be triggered every time space is pressed
 			game.projectiles.push({
-				x: game.player.x + game.player.width*0.42,
-				y: game.player.y,
-				size: game.height*0.012,
+				x: game.player.x + game.player.size*0.40,
+				y: game.player.y - game.player.bulletspeed*1.8,
+				size: game.height*0.015,
 				image: 2
 			});
 		}
@@ -828,10 +820,10 @@
 			pEn = (xEn < 2) ? 0 : Math.floor(Math.random()*((xEn-1)+1)); //a random number between 0 and the maximum array index (xEn-1)
 
 			game.enprojectiles.push({
-				x: game.enemies[pEn].x + game.enemies[pEn].width*0.42,
-				y: game.enemies[pEn].y + game.enemies[pEn].height,
-				size: game.height*0.012,
-				image: 2
+				x: game.enemies[pEn].x + game.enemies[pEn].size*0.42,
+				y: game.enemies[pEn].y + game.enemies[pEn].size,
+				size: game.height*0.015,
+				image: 20
 			});
 		}
 		
@@ -855,17 +847,21 @@
 		
 		function Collision(first, second){ //detecting rectangles' (image) collision, first is going to be the bullet, second will be the enemies. Note: the function itself can be applied to anything, 'first' and 'second' can be any variable as long as they have x and y values
 			return !(first.x > second.x + second.size ||
-				first.x + first.width < second.x ||
+				first.x + first.size < second.x ||
 				first.y > second.y + second.size ||
-				first.y + first.height < second.y);
+				first.y + first.size < second.y);
 		}
-		
-		// function Collision(first, second){ //detecting rectangles' (image) collision, first is going to be the bullet, second will be the enemies. Note: the function itself can be applied to anything, 'first' and 'second' can be any variable as long as they have x and y values
-		// 	return !(first.x > second.x + second.width ||
-		// 		first.x + first.width < second.x ||
-		// 		first.y > second.y + second.height ||
-		// 		first.y + first.height < second.y);
-		// }
+
+		function PlayerDie(){
+			game.player.rendered = false;
+			game.player.image = 3;
+			if (game.soundStatus == "ON"){game.playerexplodeSound.play();}
+			game.lives--;
+			game.score = game.score - game.levelScore;
+			game.gameOver = true;
+			game.paused = true;
+			mouseIsDown = 0;  		
+		}
 		
 		function checkImages(){	//checking if all images have been loaded. Once all loaded run init
 			if(game.doneImages >= game.requiredImages){
@@ -889,19 +885,12 @@
 				}, 1);
 			}
 		}
-		
-		
-		//=========================== Game Start =================================== 
-		
-		game.contextBackground.font = "bold " + game.width*0.08 + "px " + game.font; //the loading screen
-		game.contextBackground.fillStyle = "white";
-		game.contextBackground.fillText("loading...", game.width*0.30, game.height*0.47);
-		
+			
 		initImages([	//using initimages function to load our images
 			"_img/fighter/fighter.png",
 			"_img/enemy.png",
-			"_img/bullet.png",
-			"_img/explosion.png",
+			"_img/laser.gif",
+			"_img/explosion.gif",
 			"_img/fighter/fighter_right1.png",
 			"_img/fighter/fighter_right2.png",
 			"_img/fighter/fighter_right3.png",
@@ -917,8 +906,8 @@
 			"_img/stars/star3.png",
 			"_img/stars/star4.png",
 			"_img/stars/star5.png",
-			"_img/stars/star6.png"
-
+			"_img/stars/star6.png",
+			"_img/missile.gif"
 		]);
 		
 		checkImages(); //this function call starts our game
