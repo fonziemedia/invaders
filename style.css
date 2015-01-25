@@ -1,8 +1,9 @@
-/* warp speed ahead */
+/* warp speed ahead 
 .animClass {
 	-webkit-transform: translate3d(0, 0, 0);
-	/* more specific animation properties here */
+	/* more specific animation properties here 
 }
+*/
 
 @font-face {
     font-family: 'Lucida Console', Monaco, monospace;
@@ -31,8 +32,18 @@ canvas {
 	position: absolute; 
 	top: 0px;					/* drawing the canvases on top of each other and making them transparent */
 	left: 0px;
-	background:transparent;
-	-webkit-tap-highlight-color: transparent;
+	zoom: 1;		
+	/* This works in IE 8 & 9 too */
+	/* ... but also 5, 6, 7 */
+	filter: alpha(opacity=1);
+	/* Older than Firefox 0.9 */
+	-moz-opacity: 1;
+	/* Safari 1.x (pre WebKit!) */
+	-khtml-opacity: 1;
+	/* Modern!
+	/* Firefox 0.9+, Safari 2?, Chrome any?
+	/* Opera 9+, IE 9+ */
+	opacity: 1;
 }
 
 .container {

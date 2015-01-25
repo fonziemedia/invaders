@@ -1,5 +1,5 @@
 CACHE MANIFEST
-# 2015-01-14 v1.0.2
+# 2015-01-14 v1.0.32
 
 # Explicitly cached entries
 index.html
@@ -16,9 +16,9 @@ NETWORK:
 
 # Additional resources to cache
 CACHE:
-_img/explosion.gif
+_img/explosion.png
 _img/enemy.png
-_img/laser.gif
+_img/laser.png
 _img/stars/star1.png
 _img/stars/star2.png
 _img/stars/star3.png
@@ -36,7 +36,7 @@ _img/fighter/fighter_right2.png
 _img/fighter/fighter_right3.png
 _img/fighter/fighter_right4.png
 _img/fighter/fighter_right5.png
-_img/missile.gif
+_img/missile.png
 
 # Updating the cache
 #

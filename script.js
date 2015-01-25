@@ -73,6 +73,8 @@
 
 		
 		game.enemies = []; //The InVaDeRs
+
+		game.explosions = [];
 		
 		
 		
@@ -102,6 +104,7 @@
 		game.gameWon = false;
 		game.gameOver = false;
 		game.delayTimer = 0;
+
 		
 		
 		//====================== Canvases + Images + responsiveness  ============================
@@ -249,25 +252,9 @@
 				e.preventDefault();
 			canvasX = e.targetTouches[0].pageX - canvas.offsetLeft;
 			canvasY = e.targetTouches[0].pageY - canvas.offsetTop;
-			// showPos();
 			}
 		}
 		
-
-	
-		 
-		/* function showPos() {
-			ctx.font="14px Arial";
-			ctx.textAlign="center";
-			ctx.textBaseline="middle";
-			ctx.fillStyle="rgb(0,0,0)";
-			var str = canvasX + ", " + canvasY;
-			if (mouseIsDown) str = str + " down";
-			if (!mouseIsDown) str = str + " up";
-			ctx.clearRect(0,0, canvas.width,canvas.height);
-			ctx.fillText(str, canvas.width /2, canvas.height / 2, canvas.width - 10);
-		}
-		*/
 		
 		//====================== Init functions =================//
 		
@@ -289,7 +276,7 @@
 						size: game.height*0.06, //the size of our enemies
 						image: 1, //their ships...
 						dead: false,
-						deadTime: 20
+						deadTime: 60
 					});
 				}
 			}	
@@ -301,6 +288,7 @@
 		//====================== Game state =================//
 		
 		function gameStart() {
+
 
 			//game start
 			if ((game.keys[13] || mouseIsDown) && game.start && !(game.gameOver) && !(game.gameWon)) {
@@ -364,7 +352,7 @@
 								size: game.height*0.06, //the size of our enemies
 								image: 1, //their ships...
 								dead: false,
-								deadTime: 20
+								deadTime: 60
 							});
 						}
 					}
@@ -412,7 +400,7 @@
 								size: game.height*0.06, //the size of our enemies
 								image: 1, //their ships...
 								dead: false,
-								deadTime: 20
+								deadTime: 60
 							});
 						}
 					}
@@ -564,32 +552,56 @@
 			
 			
 			for(i in game.enemies){ //for each enemy in the game.enemies array..
-				if(!game.down){
-					if(game.left){ //if game left = true
-						game.enemies[i].x-=game.enemySpeed;	//move left			
-					}else{
-						game.enemies[i].x+=game.enemySpeed; //move right
+				if (!game.enemies[i].dead) {
+					if(!game.down){
+						if(game.left){ //if game left = true
+							game.enemies[i].x-=game.enemySpeed;	//move left			
+						}else{
+							game.enemies[i].x+=game.enemySpeed; //move right
+						}
 					}
-				}
-				
-				if(game.down){
-					game.enemies[i].y+=game.enemySpeed;
-				}
-				
-				//enemy breaching defenses (shit hits the fan)
-				if((game.enemies[i].y >= game.height - (game.player.size)) && !(game.gameOver)) {
-					PlayerDie(); 
-				}
-				
-				//player-enemy collision
-				if(Collision(game.player, game.enemies[i]) && !(game.gameOver)){				
-					PlayerDie(); 
-				}
+					
+					if(game.down){
+						game.enemies[i].y+=game.enemySpeed;
+					}
+					
+					//enemy breaching defenses (shit hits the fan)
+					if((game.enemies[i].y >= game.height - (game.player.size)) && !(game.gameOver)) {
+						game.contextPlayer.clearRect(game.player.x, game.player.y, game.player.size, game.player.size);
+						Xplode(game.player.x, game.player.y);
+						PlayerDie(); 
+					}
+					
+					//player-enemy collision
+					if(Collision(game.player, game.enemies[i]) && !game.enemies[i].dead && !game.gameOver){				
+						Xplode(game.player.x, game.player.y);
+						Xplode(game.enemies[i].x, game.enemies[i].y);
+						PlayerDie();
+						game.contextEnemies.clearRect(game.enemies[i].x, game.enemies[i].y, game.enemies[i].size, game.enemies[i].size);
+						game.enemies[i].dead = true;
+						game.enemies.splice(i,1);
+					}
 
-				if(game.enemies[i].image == 1 && game.enemies.length > 0 && game.enshootTimer <=0 && !(game.paused)){ //only add a bullet if space is pressed and enough time has passed i.e. our timer has reached 0
-				addEnBullet();
-				game.enshootTimer = game.enfullShootTimer; //resetting our timer back to 15
+					if(game.enemies.length > 0 && game.enshootTimer <=0 && !(game.paused)){ //only add a bullet if space is pressed and enough time has passed i.e. our timer has reached 0
+					addEnBullet();
+					game.enshootTimer = game.enfullShootTimer; //resetting our timer back to 15
+					}
+				}					
 			}
+
+			if(!game.gameOver) {
+				for (e in game.explosions){ //making expolosions move
+						if(!game.down){
+							if(game.left){ //if game left = true
+								game.explosions[e].x-=game.enemySpeed/2;	//move left			
+							}else{
+								game.explosions[e].x+=game.enemySpeed/2; //move right
+							}
+						}
+						if(game.down){
+							game.explosions[e].y+=game.enemySpeed/2;
+						}
+				}
 			}
 						
 			for(i in game.projectiles){ //making each bullet fired move
@@ -606,7 +618,7 @@
 					}
 			}
 
-			if((game.keys[32] || mouseIsDown) && game.shootTimer <=0 && !(game.paused)){ //only add a bullet if space is pressed and enough time has passed i.e. our timer has reached 0
+			if((game.keys[32] || mouseIsDown) && game.shootTimer <=0 && !(game.gameOver)){ //only add a bullet if space is pressed and enough time has passed i.e. our timer has reached 0
 				addBullet();
 				if (game.soundStatus == "ON"){game.shootSound.play();}
 				game.shootTimer = game.fullShootTimer; //resetting our timer back to 15
@@ -615,35 +627,33 @@
 			//player bullet collision
 			for(m in game.enemies){																
 				for(p in game.projectiles){
-					if(Collision(game.enemies[m], game.projectiles[p]) && game.enemies[m].image == 1){ //image check avoids ghost scoring
+					if(Collision(game.enemies[m], game.projectiles[p]) && !game.enemies[m].dead){ //dead check avoids ghost scoring
 						if(game.soundStatus == "ON"){game.enemyexplodeSound.play()};
+						game.projectiles.splice(p,1);
 						game.enemies[m].dead = true;
 						game.score++;
 						game.levelScore++;
-						game.enemies[m].image = 3;
-						// game.contextEnemies.clearRect(game.projectiles[p].x, game.projectiles[p].y, game.projectiles[p].size, game.projectiles[p].size*1.8);
-						game.projectiles.splice(p,1);
+						// game.contextEnemies.clearRect(game.projectiles[p].x, game.projectiles[p].y, game.projectiles[p].size, game.projectiles[p].size*1.8);	
+						Xplode(game.enemies[m].x, game.enemies[m].y);
 						scores();
 					}
+				}
+			}
+
+			for (i in game.enemies){ //splicing enemies needs to be here
+				if(game.enemies[i].dead){
+					game.contextEnemies.clearRect(game.enemies[i].x, game.enemies[i].y, game.enemies[i].size, game.enemies[i].size);						
+					game.enemies.splice(i,1);
 				}
 			}
 
 			//enemy bullet collision
 			for(n in game.enprojectiles){						
 				if(Collision(game.player, game.enprojectiles[n]) && !(game.gameOver)){
-					PlayerDie();
 					game.enprojectiles.splice(n,1);
-				}
-			}
-			
-
-			for (i in game.enemies){
-				if(game.enemies[i].dead){
-					game.enemies[i].deadTime--; //making dead enemies go away after a few secs
-				}
-				if (game.enemies[i].dead && game.enemies[i].deadTime <= 0){
-					game.contextEnemies.clearRect(game.enemies[i].x-game.enemies[i].size*0.1, game.enemies[i].y-game.enemies[i].size*0.1, game.enemies[i].size*2.1, game.enemies[i].size*2.1);
-					game.enemies.splice(i,1);	
+					game.contextPlayer.clearRect(game.player.x, game.player.y, game.player.size, game.player.size);
+					Xplode(game.player.x, game.player.y);
+					PlayerDie();
 				}
 			}
 			
@@ -660,8 +670,7 @@
 					}	
 				}
 			}
-		}
-		
+		}		
 		
 		//====================== Render functions =================//
 		
@@ -675,63 +684,118 @@
 			}
 
 			//SPEED GIVE ME WHAT I NEED
-			if(!game.player.rendered){ //if player not rendered i.e. rendered = false
-			game.contextPlayer.clearRect(0 , 0, game.width, game.height); //clear trails
-			game.contextPlayer.drawImage(game.images[game.player.image], game.player.x, game.player.y, game.player.size, game.player.size); //rendering
-			game.player.rendered = true;
+			if(!game.player.rendered && !game.paused){ //if player not rendered i.e. rendered = false
+				game.contextPlayer.clearRect(0 , 0, game.width, game.height); //clear trails
+				if(!game.gameOver){ //if player not dead			
+					game.contextPlayer.drawImage(game.images[game.player.image], game.player.x, game.player.y, game.player.size, game.player.size); //rendering
+					game.player.rendered = true;
+				}
 			}
+
 			for(i in game.enemies){ //for each enemy
-				var enemy = game.enemies[i]; //all together now
-				game.contextEnemies.clearRect(enemy.x - enemy.size*0.1, enemy.y - enemy.size*0.1, enemy.size*1.8, enemy.size*1.1); //clear trails
-				game.contextEnemies.drawImage(game.images[enemy.image], enemy.x, enemy.y, enemy.size, enemy.size); //rendering
+					var enemy = game.enemies[i]; //all together now
+					game.contextEnemies.clearRect(enemy.x - enemy.size*0.1, enemy.y - enemy.size*0.1, enemy.size*1.8, enemy.size*1.1); //clear trails
+					game.contextEnemies.drawImage(game.images[enemy.image], enemy.x, enemy.y, enemy.size, enemy.size); //rendering
 			}
+
+
+			for(e in game.explosions){
+				var xplos = game.explosions[e];
+				var xplosFpr = Math.floor(game.images[xplos.image].width / xplos.frameWidth); //Sprite FramesperRow
+
+				// create the sequence of frame numbers for the animation
+  				for (var frameNumber = xplos.startFrame; frameNumber <= xplos.endFrame; frameNumber++){
+    				xplos.animationSequence.push(frameNumber);
+    			}
+
+    			// update to the next frame if it is time
+				if (xplos.counter == (xplos.frameSpeed - 1)) {
+					xplos.currentFrame = (xplos.currentFrame + 1) % xplos.animationSequence.length;
+				}
+
+				// update the counter
+				xplos.counter = (xplos.counter + 1) % xplos.frameSpeed;
+
+				var row = Math.floor(xplos.animationSequence[xplos.currentFrame] / xplosFpr);
+				var col = Math.floor(xplos.animationSequence[xplos.currentFrame] % xplosFpr);
+ 				
+ 				if (xplos.currentFrame <= 19){
+				game.contextPlayer.drawImage(
+					game.images[xplos.image],
+					col * xplos.frameWidth, row * xplos.frameHeight,
+      				xplos.frameWidth, xplos.frameHeight,
+					xplos.x, xplos.y,
+					xplos.size, xplos.size);
+				}			
+			}
+
+			for(e in game.explosions){
+				if (xplos.currentFrame == 19){
+					game.explosions.splice(e,1);
+				}
+			}
+
 			for(i in game.projectiles){ //for each bullet
 				var proj = game.projectiles[i];
-				game.contextPlayer.clearRect(proj.x, proj.y + game.player.bulletspeed, proj.size, proj.size);
-				game.contextPlayer.drawImage(game.images[proj.image], proj.x, proj.y, proj.size, proj.size);
+				var projFpr = Math.floor(game.images[proj.image].width / proj.frameWidth); //Sprite FramesperRow
+
+  				// create the sequence of frame numbers for the animation
+  				for (var frameNumber = proj.startFrame; frameNumber <= proj.endFrame; frameNumber++){
+    				proj.animationSequence.push(frameNumber);
+    			}
+
+    			// update to the next frame if it is time
+				if (proj.counter == (proj.frameSpeed - 1)) {
+					proj.currentFrame = (proj.currentFrame + 1) % proj.animationSequence.length;
+				}
+
+				// update the counter
+				proj.counter = (proj.counter + 1) % proj.frameSpeed;
+
+				var row = Math.floor(proj.animationSequence[proj.currentFrame] / projFpr);
+				var col = Math.floor(proj.animationSequence[proj.currentFrame] % projFpr);
+ 
+				// game.contextPlayer.clearRect(proj.x, proj.y + game.player.bulletspeed, proj.size, proj.size);
+				game.contextPlayer.drawImage(
+					game.images[proj.image],
+					col * proj.frameWidth, row * proj.frameHeight,
+      				proj.frameWidth, proj.frameHeight,
+					proj.x, proj.y,
+					proj.frameWidth * 0.2 * proj.size, proj.frameHeight * 0.2 * proj.size);
 			}
+
+
+
 			for(i in game.enprojectiles){ //for each bullet
 				var enproj = game.enprojectiles[i];
-				game.contextPlayer.clearRect(enproj.x, enproj.y - game.EnBulletSpeed, enproj.size, enproj.size);
-				game.contextPlayer.drawImage(game.images[enproj.image], enproj.x, enproj.y, enproj.size, enproj.size);
 
+			var enprojFpr = Math.floor(game.images[enproj.image].width / enproj.frameWidth); //Sprite FramesperRow
+
+  				// create the sequence of frame numbers for the animation
+  				for (var frameNumber = enproj.startFrame; frameNumber <= enproj.endFrame; frameNumber++){
+    				enproj.animationSequence.push(frameNumber);
+    			}
+
+    			// update to the next frame if it is time
+				if (enproj.counter == (enproj.frameSpeed - 1)) {
+					enproj.currentFrame = (enproj.currentFrame + 1) % enproj.animationSequence.length;
+				}
+
+				// update the counter
+				enproj.counter = (enproj.counter + 1) % enproj.frameSpeed;
+
+				var row = Math.floor(enproj.animationSequence[enproj.currentFrame] / enprojFpr);
+				var col = Math.floor(enproj.animationSequence[enproj.currentFrame] % enprojFpr);
+ 
+				// game.contextPlayer.clearRect(enproj.x, enproj.y + game.player.bulletspeed, enproj.size, enproj.size);
+				game.contextPlayer.drawImage(
+					game.images[enproj.image],
+					col * enproj.frameWidth, row * enproj.frameHeight,
+      				enproj.frameWidth, enproj.frameHeight,
+					enproj.x, enproj.y,
+					enproj.frameWidth * 0.25 * enproj.size, enproj.frameHeight * 0.25 * enproj.size);
 			}
 
-			if (game.gameOver && game.lives < 1){
-				game.contextPlayer.font = "bold " + game.width*0.08 + "px " + game.font;
-				game.contextPlayer.fillStyle = "#FF7F00";
-				game.contextPlayer.fillText("Game Over", game.width*0.30, game.height*0.42);
-				game.contextPlayer.font = "bold " + game.width*0.06 + "px " + game.font;
-				game.contextPlayer.fillText(game.score + " enemy ships destroyed", game.width*0.19, game.height*0.52);
-				game.contextPlayer.font = "bold " + game.width*0.04 + "px " + game.font;
-				game.contextPlayer.fillStyle = "white";
-				if (navigator.userAgent.match(/(iPod|iPhone|iPad|Android)/)) {
-					game.contextPlayer.fillText("Tap screen to restart", game.width*0.30, game.height*0.62);
-				} else {
-					game.contextPlayer.fillText("Press Enter or LMB to restart", game.width*0.23, game.height*0.62);
-				}
-				
-				if (game.soundStatus == "ON") {
-					game.deathSound.play();
-				}
-				game.levelScore = 0;
-			}
-			if (game.gameOver && game.lives >= 1){
-				game.contextPlayer.font = "bold " + game.width*0.06 + "px " + game.font;
-				game.contextPlayer.fillStyle = "#FFD455";
-				game.contextPlayer.fillText("Your ship has been Destroyed!", game.width*0.11, game.height*0.45);
-				game.contextPlayer.font = "bold " + game.width*0.04 + "px " + game.font;
-				game.contextPlayer.fillText("(" + game.lives + " ships left)",  game.width*0.40, game.height*0.52 );
-				game.contextPlayer.fillStyle = "white";
-				if (navigator.userAgent.match(/(iPod|iPhone|iPad|Android)/)) {
-					game.contextPlayer.fillText("Tap screen to continue", game.width*0.30, game.height*0.58);
-				} else {
-					game.contextPlayer.fillText("Press Enter or LMB to continue", game.width*0.22, game.height*0.62);
-
-				}
-				game.levelScore = 0;
-			}
-			
 			if (game.gameWon && game.level > 1 && game.level <=6 ){
 				game.contextPlayer.font = "bold " + game.width*0.08 + "px " + game.font;				
 				game.contextPlayer.fillStyle = "#FFD455";
@@ -806,12 +870,39 @@
 			}
 		}
 		
+		function Xplode(xpos,ypos){ //add bullet function will be triggered every time space is pressed
+			game.explosions.push({
+				x: xpos,
+				y: ypos,
+				frameWidth: 96,
+				frameHeight: 96,
+				size: game.height*0.07,
+				startFrame: 0,
+				endFrame: 19,
+				frameSpeed: 2,
+				animationSequence: [],  // array holding the order of the animation
+				currentFrame: 0,        // the current frame to draw
+				counter: 0,             // keep track of frame rate
+				image: 3
+			});
+			if (game.soundStatus == "ON"){game.enemyexplodeSound.play();}
+		}
+
 		function addBullet(){ //add bullet function will be triggered every time space is pressed
 			game.projectiles.push({
 				x: game.player.x + game.player.size*0.40,
 				y: game.player.y - game.player.bulletspeed*1.8,
-				size: game.height*0.015,
+				size: game.height*0.0025,
+				frameWidth: 64,
+				frameHeight: 43,
+				startFrame: 0,
+				endFrame: 11,
+				frameSpeed: 4,
+				animationSequence: [],  // array holding the order of the animation
+				currentFrame: 0,        // the current frame to draw
+				counter: 0,             // keep track of frame rate
 				image: 2
+
 			});
 		}
 
@@ -822,7 +913,15 @@
 			game.enprojectiles.push({
 				x: game.enemies[pEn].x + game.enemies[pEn].size*0.42,
 				y: game.enemies[pEn].y + game.enemies[pEn].size,
-				size: game.height*0.015,
+				size: game.height*0.0025,
+				frameWidth: 24,
+				frameHeight: 74,
+				startFrame: 0,
+				endFrame: 2,
+				frameSpeed: 5,
+				animationSequence: [],  // array holding the order of the animation
+				currentFrame: 0,        // the current frame to draw
+				counter: 0,
 				image: 20
 			});
 		}
@@ -853,16 +952,58 @@
 		}
 
 		function PlayerDie(){
-			game.player.rendered = false;
-			game.player.image = 3;
 			if (game.soundStatus == "ON"){game.playerexplodeSound.play();}
+			game.player.crashed = true;
 			game.lives--;
 			game.score = game.score - game.levelScore;
 			game.gameOver = true;
-			game.paused = true;
-			mouseIsDown = 0;  		
-		}
-		
+			setTimeout(function(){
+				game.paused = true;
+				mouseIsDown = 0;
+
+				if (game.gameOver && game.paused && game.lives < 1){
+					game.contextPlayer.font = "bold " + game.width*0.08 + "px " + game.font;
+					game.contextPlayer.fillStyle = "#FF7F00";
+					game.contextPlayer.fillText("Game Over", game.width*0.30, game.height*0.42);
+					game.contextPlayer.font = "bold " + game.width*0.06 + "px " + game.font;
+					game.contextPlayer.fillText(game.score + " enemy ships destroyed", game.width*0.19, game.height*0.52);
+					game.contextPlayer.font = "bold " + game.width*0.04 + "px " + game.font;
+					game.contextPlayer.fillStyle = "white";
+					if (navigator.userAgent.match(/(iPod|iPhone|iPad|Android)/)) {
+						game.contextPlayer.fillText("Tap screen to restart", game.width*0.30, game.height*0.62);
+					} else {
+						game.contextPlayer.fillText("Press Enter or LMB to restart", game.width*0.23, game.height*0.62);
+					}
+
+					if (game.soundStatus == "ON") {
+						game.deathSound.play();
+					}
+
+					game.levelScore = 0;
+
+				}
+
+			if (game.gameOver && game.paused && game.lives >= 1){
+				game.contextPlayer.font = "bold " + game.width*0.06 + "px " + game.font;
+				game.contextPlayer.fillStyle = "#FFD455";
+				game.contextPlayer.fillText("Your ship has been Destroyed!", game.width*0.11, game.height*0.45);
+				game.contextPlayer.font = "bold " + game.width*0.04 + "px " + game.font;
+				game.contextPlayer.fillText("(" + game.lives + " ships left)",  game.width*0.40, game.height*0.52 );
+				game.contextPlayer.fillStyle = "white";
+
+				if (navigator.userAgent.match(/(iPod|iPhone|iPad|Android)/)) {
+					game.contextPlayer.fillText("Tap screen to continue", game.width*0.30, game.height*0.58);
+				} else {
+					game.contextPlayer.fillText("Press Enter or LMB to continue", game.width*0.22, game.height*0.62);
+				}
+
+				game.levelScore = 0;
+			}
+
+
+			}, 1000);
+		}	
+
 		function checkImages(){	//checking if all images have been loaded. Once all loaded run init
 			if(game.doneImages >= game.requiredImages){
 				game.contextBackground.clearRect(0, 0, game.width, game.height);
@@ -889,8 +1030,8 @@
 		initImages([	//using initimages function to load our images
 			"_img/fighter/fighter.png",
 			"_img/enemy.png",
-			"_img/laser.gif",
-			"_img/explosion.gif",
+			"_img/laser.png",
+			"_img/explosion.png",
 			"_img/fighter/fighter_right1.png",
 			"_img/fighter/fighter_right2.png",
 			"_img/fighter/fighter_right3.png",
@@ -907,7 +1048,7 @@
 			"_img/stars/star4.png",
 			"_img/stars/star5.png",
 			"_img/stars/star6.png",
-			"_img/missile.gif"
+			"_img/missile.png"
 		]);
 		
 		checkImages(); //this function call starts our game
