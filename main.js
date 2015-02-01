@@ -1,5 +1,5 @@
-(function(game){ //keeping our code within a function so that variables are not accessible via console (prevent hacking)
-	$(document).ready(function(){ //using jquery $ and telling the computer to only run the below once the whole document(webpage) has loaded, this way our script doesn't need to be in the footer to run properly
+(function(game){ // jshint ignore:line
+	$(document).ready(function(){ // jshint ignore:line
 		
 		// Check if a new cache is available on page load.
 		window.addEventListener('load', function(e) {
@@ -18,8 +18,8 @@
 		}, false);
 
 		//start listening to mouse & touch events
-		window.addEventListener('load', initInput, false);	
-		
+		window.addEventListener('load', initInput, false);
+
 		
 		// /* Connect to XML */
 		$.ajax({
@@ -44,7 +44,7 @@
 				X_Subtitle = $(this).find('subtitle').text();
 				X_dt_Start = $(this).find('dt-start').text();
 				X_mb_Start = $(this).find('mb-start').text();
-			})
+			});
 		},
 		error: function() {
 			alert("The XML File could not be processed correctly.");
@@ -52,36 +52,33 @@
 		});
 
 
-		/*THE GAME*/
+		/*GAME VARS*/
 
 		var game = {}; //this is a global var which will contain other game vars
-		
 		game.stars = []; //this is an array which will contain our stars info: position in space and size		
-
-		
 		game.score = 0; //the game score
 		game.levelScore = 0; //the score for each level
-		
 		game.level = X_Level; //starting at level X...
-		
 		game.lives = X_Lives; //with X ships (lives)
-		
 		game.keys = []; //the keyboard array
-		
 		game.projectiles = []; //Our proton torpedoes!
 		game.enprojectiles = []; //Enemy lasers!
-
-		
 		game.enemies = []; //The InVaDeRs
-
 		game.explosions = [];
+
+
+		//====================== Game state ========================
 		
-		
+		game.start = true;
+		game.paused = true;
+		game.gameWon = false;
+		game.gameOver = false;
+		game.delayTimer = 0;	
 		
 		
 		//========================== Audio ==========================
 		
-		game.sound = X_Sound;
+		game.sound = X_Sound;	//on/off trigger
 
 		game.enemyexplodeSound = new Audio("_sounds/explosion.wav");
 		game.playerexplodeSound = new Audio("_sounds/blast.mp3");
@@ -95,17 +92,8 @@
 		game.images = [];
 		game.doneImages  = 0; // will contain how many images have been loaded
 		game.requiredImages = 0; // will contain how many images should be loaded
-		game.font = (navigator.userAgent.match(/(iPod|iPhone|iPad|Android)/)) ? "Helvetica" : "Monaco";
-		
-		//====================== Game state ========================
-		
-		game.start = true;
-		game.paused = true;
-		game.gameWon = false;
-		game.gameOver = false;
-		game.delayTimer = 0;
+		game.font = (navigator.userAgent.match(/(iPod|iPhone|iPad|Android)/)) ? "Helvetica" : "Monaco";	
 
-		
 		
 		//====================== Canvases + Images + responsiveness  ============================
 		
@@ -115,8 +103,7 @@
 		game.contextText = document.getElementById("textCanvas").getContext("2d");
 				
 
-
-		$(document).ready( function(){							//making our canvases dynamically resize according to the size of the browser window
+		$(document).ready( function(){		//making our canvases dynamically resize according to the size of the browser window
 			
 			//Get the canvas & context
 			var c1 = $('#backgroundCanvas');
@@ -159,10 +146,8 @@
 				//======================  Game settings =====================				
 				game.enemySpeed = X_EnemySpeed * game.height/2500; //the enemies' speed
 				game.EnBulletSpeed = X_EnBulletSpeed * game.height/1000;
-				game.leftCount = 1; //game timers for making enemies move left-right and charge down
 				game.downCount = 1;
 				game.downDivision = 600; //the higher the level the slower the enemies come down
-				game.leftDivision = parseInt(game.width*0.20);
 				game.left = false;
 				game.down = false;
 				game.fullShootTimer = X_GunSpeed;	//this timer will limit the number of bullets being fired
@@ -179,116 +164,10 @@
 			//Initial call 
 			respondCanvas();
 
-
-		}); 
+		}); // jshint ignore:line
+//====================== Game state =================//
 		
-		
-		//====================== member functions =================//
-		
-		$(document).keydown(function(e){    //using jquery to listen to pressed keys
-			game.keys[e.keyCode ? e.keyCode : e.which] = true;	//and cross browser proofing
-		});
-		
-		$(document).keyup(function(e){   //using jquery to listen to released keys
-			delete game.keys[e.keyCode ? e.keyCode : e.which]; //once key is released, delete the key pressed action previously defined 
-		});
-		
-		//mouse and touch screens
-		var canvas;
-		var ctx;
-		var canvasX;
-		var canvasY;
-		var mouseIsDown = 0;
-		var moveX = canvasX;      //initial define of moveX as canvasX position
- 
-
-		function initInput() {
-        canvas = document.getElementById("playerCanvas");
-        ctx = canvas.getContext("2d");
-		         
-        canvas.addEventListener("mousedown",mouseDown, false);
-        canvas.addEventListener("mouseup", mouseUp, false);        
-        canvas.addEventListener("mousemove",mouseXY, false);
-
-        canvas.addEventListener("touchstart", touchDown, false);
-        canvas.addEventListener("touchend", touchUp, false);
-        canvas.addEventListener("touchcancel", touchUp, false);
-        canvas.addEventListener("touchleave", touchUp, false);
-		canvas.addEventListener("touchmove", touchXY, false);
-		                
-		}
-		
-		
-		function mouseUp() {
-			mouseIsDown = 0;
-			mouseXY();
-		}
-		 
-		function touchUp() {
-			mouseIsDown = 0;
-		}
-		 
-		function mouseDown() {
-			mouseIsDown = 1;
-			mouseXY();
-		}
-		  
-		function touchDown() {
-			mouseIsDown = 1;
-			touchXY();
-		}
-		
-		function mouseXY(e) {
-			if (e) {
-				e.preventDefault();
-			canvasX = e.pageX - canvas.offsetLeft;
-			canvasY = e.pageY - canvas.offsetTop;
-			//showPos();
-			}
-		}
-		 
-		function touchXY(e) {
-			if (e) {
-				e.preventDefault();
-			canvasX = e.targetTouches[0].pageX - canvas.offsetLeft;
-			canvasY = e.targetTouches[0].pageY - canvas.offsetTop;
-			}
-		}
-		
-		
-		//====================== Init functions =================//
-		
-		
-		function init(){ //initialising our game full of stars all over the screen
-			for(i=0; i<600; i++) {
-				game.stars.push({ //push values to the game.stars array
-					x:Math.floor(Math.random() * game.width), //floor will round down x which will be a random number between 0 and 550
-					y:Math.floor(Math.random() * game.height),
-					size:Math.random()*game.width*0.003, //size of the stars
-					image: Math.floor(Math.random()*(19-14+1)+14) //returns a random number between and 
-				});
-			}
-			for(y = 0; y < game.level; y++) {	// y enemies vertically..
-				for(x = 0; x < game.level; x++){ // ..by x horizontally
-					game.enemies.push({ //adding value to the game.enemies array
-						x: game.width*0.15  + (x*(game.width*0.15)) ,  //setting positions (1st bit) and making space between enemies (2nd bit)
-						y: game.height*0.10 + y*(game.player.size),
-						size: game.height*0.06, //the size of our enemies
-						image: 1, //their ships...
-						dead: false,
-						deadTime: 60
-					});
-				}
-			}	
-								
-			loop();
-			
-		}
-		
-		//====================== Game state =================//
-		
-		function gameStart() {
-
+		function gameState() {
 
 			//game start
 			if ((game.keys[13] || mouseIsDown) && game.start && !(game.gameOver) && !(game.gameWon)) {
@@ -320,139 +199,40 @@
 			if (game.keys[27] ||
 			   ((game.keys[13] || mouseIsDown) && game.paused && !(game.start) && game.gameOver && !(game.gameWon)) ||
 			   ((game.keys[13] || mouseIsDown) && game.paused && !(game.start) && game.level >= 7)){
-					mouseIsDown = 0;
-					game.gameOver = false;	
-					game.gameWon = false;
+
 					if (game.lives < 1 || game.level >=7){
 						game.level = X_Level;
 						game.score = 0;
 						game.lives = X_Lives;
 						game.downDivision = Math.floor((300 * game.level)); //the higher the level the slower the enemies come down
-						game.leftDivision = parseInt((game.width*0.25)-((game.width*0.035)*game.level)); 
-					}
-					game.downCount = 1;
-					game.leftCount = 1;
-					game.left = false;
-					game.enfullShootTimer = X_EnGunSpeed * game.enemies.length / (game.level * game.enemies.length / 2);
-					game.enshootTimer = game.enfullShootTimer;
-					game.down = false;
-					game.contextBackground.clearRect(1, 1, game.width, game.height); 
-					game.contextPlayer.clearRect(1, 1, game.width, game.height); 
-					game.contextEnemies.clearRect(1, 1, game.width, game.height); 
-					game.contextText.clearRect(1, 1, game.width, game.height);
-					game.projectiles = []; 
-					game.enprojectiles = [];
-					game.enemies = [];
-					
-					for(y = 0; y < game.level; y++) {	// y enemies vertically..
-						for(x = 0; x < game.level; x++){ // ..by x horizontally
-							game.enemies.push({ //adding value to the game.enemies array
-								x: game.width*0.05  + (x*(game.width*0.15)) ,  //setting positions (1st bit) and making space between enemies (2nd bit)
-								y: game.height*0.10 + y*(game.player.size),
-								size: game.height*0.06, //the size of our enemies
-								image: 1, //their ships...
-								dead: false,
-								deadTime: 60
-							});
-						}
 					}
 
-					game.player = {	//creating our player
-						x: game.width*0.46,
-						y: game.height*0.90,
-						size: game.height*0.08,
-						speed: X_PlayerSpeed,
-						bulletspeed: X_BulletSpeed*game.height/1000,
-						image: 0,
-						rendered: false,
-						crashed: false					
-					};
-					game.paused = false;
-					scores();
-			};
+					resetGame();
+
+			}
 			
 			//level up
-			if ((game.keys[13] || mouseIsDown) && !(game.gameOver) && !(game.start) && (game.gameWon) && game.level <= 6) {
-					mouseIsDown = 0; 
-					game.gameWon = false;					
-					game.downCount = 1;
-					game.leftCount = 1;					
+			if ((game.keys[13] || mouseIsDown) && !(game.gameOver) && !(game.start) && (game.gameWon) && game.level <= 6) {					
 					game.downDivision = Math.floor((300 * game.level)); //the higher the level the slower the enemies come down
-					game.leftDivision = parseInt((game.width*0.25)-((game.width*0.035)*game.level)); //the time it takes for enemies to turn: it's 25% of the witdth (the smaller the screen the faster they turn) minus a proportionate percentage per game level (25% - 3.5% per each level, because the more enemies on screen the faster they need to turn to keep them on screen.
-					game.left = false;
-					game.down = false;
-					game.enfullShootTimer = X_EnGunSpeed / game.level;
-					game.enshootTimer = game.enfullShootTimer;
-					game.contextBackground.clearRect(1, 1, game.width, game.height); 
-					game.contextPlayer.clearRect(1, 1, game.width, game.height); 
-					game.contextEnemies.clearRect(1, 1, game.width, game.height); 
-					game.contextText.clearRect(1, 1, game.width, game.height); 
-					game.projectiles = [];
-					game.enprojectiles = [];
-					game.enemies = [];
-										
-					
-					for(y = 0; y < game.level; y++) {	// y enemies vertically..
-						for(x = 0; x < game.level; x++){ // ..by x horizontally
-							game.enemies.push({ //adding value to the game.enemies array
-								x: game.width*0.05  + (x*(game.width*0.15)) ,  //setting start spawning position according to width (1st bit) and making space between enemies (2nd bit)
-								y: game.height*0.10 + y*(game.player.size),
-								size: game.height*0.06, //the size of our enemies
-								image: 1, //their ships...
-								dead: false,
-								deadTime: 60
-							});
-						}
-					}
-
-					game.player = {	//reseting our player
-						x: game.width*0.46,
-						y: game.height*0.90,
-						size: game.height*0.08,
-						speed: X_PlayerSpeed,
-						bulletspeed: X_BulletSpeed*game.height/1000,
-						image: 0,
-						rendered: false,
-						crashed: false					
-					};
-					game.paused = false;
-					scores();
+					resetGame();									
 			}
 		}
-				
-			/*
-			up - 38
-			down - 40
-			left - 37
-			right - 39
-			
-			w - 87
-			s - 83
-			a - 65
-			d - 68
-			
-			space - 32
-			*/
-				
-				
-		//====================== Update functions =================//
+		//====================== Update function =================//
 		
 		function update(){ //game logic goes here			
 			addStars(1);		
-			if(game.leftCount > 100000)game.leftCount = 0; //this is necessary otherwise game.leftCount++ would break the game at some point
-			if(game.downCount > 100000)game.downCount = 0; //this is necessary otherwise game.downCount++ would break the game at some point
+			if(game.downCount > 100000){game.downCount = 0;} //this is necessary otherwise game.downCount++ would break the game at some point
 			game.downCount++;
-			game.leftCount++; //adding to our counters
 			
 			if(game.shootTimer > 0)game.shootTimer--; //start ticking our timer down
 			if(game.enshootTimer > 0)game.enshootTimer--; //start ticking our enemy shoot timer down
 
 			
-			for(i in game.stars){
-				if(game.stars[i].y <= -5){ //removing gone passed stars from memory
-					game.stars.splice(i,1); //splice takes objects out of an array completely, start at arg1 and remove arg2 i.e. start from i and remove 1 star 
+			for(var s in game.stars){
+				if(game.stars[s].y <= -5){ //removing gone passed stars from memory
+					game.stars.splice(s,1); //splice takes objects out of an array completely, start at arg1 and remove arg2 i.e. start from i and remove 1 star 
 				}
-				game.stars[i].y--;
+				game.stars[s].y--;
 			}
 			
 
@@ -542,17 +322,18 @@
 					game.player.rendered = false;
 				}	
 			}
-			if(game.leftCount % game.leftDivision == 0){   //this is our timer for enemies to change movement direction. If the division of these vars equals 0 then.. (% returns a boolean for the module (remainder) of a division, 0 if no result is a integer, 1 if decimal)
-				game.left = !game.left; //change direction
-			}
-			
-			if(game.downCount % game.downDivision == 0){   //this is our timer for enemies to change movement direction. If the division of these vars equals 0 then..
-				game.down = true //move enemy ships down
+						
+			if(game.downCount % game.downDivision === 0){   //this is our timer for enemies to change movement direction. If the division of these vars equals 0 then..
+				game.down = true; //move enemy ships down
 			}
 			
 			
-			for(i in game.enemies){ //for each enemy in the game.enemies array..
+			for(var i in game.enemies){ //for each enemy in the game.enemies array..
 				if (!game.enemies[i].dead) {
+
+					if (game.enemies[i].x >= game.width*0.9) {game.left = true;}
+					if (game.enemies[i].x <= game.width*0.1) {game.left = false;}
+
 					if(!game.down){
 						if(game.left){ //if game left = true
 							game.enemies[i].x-=game.enemySpeed;	//move left			
@@ -563,7 +344,30 @@
 					
 					if(game.down){
 						game.enemies[i].y+=game.enemySpeed;
-					}
+					}							
+					
+					// RANDOMIZING ENEMY MOVEMENT
+					// FOR REFERENCE ONLY: Math.floor(Math.random()*((xEn-1)+1)); //a random number between 0 and the maximum array index (xEn-1)
+
+					// if (game.enemies[i].x < 10){
+					// 	game.enemies[i].x += game.enemySpeed;
+					// } else if (game.enemies[i].x > game.width*0.95){
+					// 	game.enemies[i].x -= game.enemySpeed;
+					// } else if (game.enemies[i].x > game.player.x){
+					// 	game.enemies[i].x -= game.enemySpeed;
+					// } else if (game.enemies[i].x < game.player.x){
+					// 	game.enemies[i].x += game.enemySpeed;
+					// } else {
+					// 	game.enemies[i].x-= Math.random() < 0.5 ? -(Math.floor(Math.random()*((game.enemySpeed*1.2)-game.enemySpeed+1)+game.enemySpeed)) : Math.floor(Math.random()*((game.enemySpeed*1.2)-game.enemySpeed+1)+game.enemySpeed);	//move left							
+					// }	
+
+					// if (game.enemies[i].y < 10){
+					// 	game.enemies[i].y += game.enemySpeed;
+					// } else if (game.enemies[i].y > game.height*0.70){
+					// 	game.enemies[i].y -= game.enemySpeed;
+					// } else {
+					// game.enemies[i].y+= Math.random() < 0.5 ? -(Math.floor(Math.random()*((game.enemySpeed*1.2)-game.enemySpeed+1)+game.enemySpeed)) : Math.floor(Math.random()*((game.enemySpeed*1.2)-game.enemySpeed+1)+game.enemySpeed);	//move left			
+					// }
 					
 					//enemy breaching defenses (shit hits the fan)
 					if((game.enemies[i].y >= game.height - (game.player.size)) && !(game.gameOver)) {
@@ -590,7 +394,7 @@
 			}
 
 			if(!game.gameOver) {
-				for (e in game.explosions){ //making expolosions move
+				for (var e in game.explosions){ //making expolosions move
 						if(!game.down){
 							if(game.left){ //if game left = true
 								game.explosions[e].x-=game.enemySpeed/2;	//move left			
@@ -604,15 +408,23 @@
 				}
 			}
 						
-			for(i in game.projectiles){ //making each bullet fired move
-				game.projectiles[i].y-= game.player.bulletspeed; //bullet speed
-				if(game.projectiles[i].y <= -game.projectiles[i].size*2){ //if a bullet goes off the screen..
-					game.projectiles.splice(i,1); // ..remove it from the array/memory
+			for(var d in game.projectiles){ //making each bullet fired move
+				game.projectiles[d].y-= game.player.bulletspeed; //bullet speed
+				if(game.projectiles[d].y <= -game.projectiles[d].size*2){ //if a bullet goes off the screen..
+					game.projectiles.splice(d,1); // ..remove it from the array/memory
 					}
 			}
 
-			for(c in game.enprojectiles){ //making each bullet fired move
+			for(var c in game.enprojectiles){ //making each bullet fired move
 				game.enprojectiles[c].y+= game.EnBulletSpeed; //bullet speed
+
+				if (game.level >=4){
+					if (game.enprojectiles[c].y <= game.player.y){
+						/*jshint -W030 */ 
+						(game.enprojectiles[c].x >= game.player.x) ? game.enprojectiles[c].x -= 2 : game.enprojectiles[c].x += 2;
+					}
+				}
+
 				if(game.enprojectiles[c].y >= game.height + (game.height*0.05)) { //if a bullet goes off the screen..
 					game.enprojectiles.splice(c,1); // ..remove it from the array/memory
 					}
@@ -625,14 +437,16 @@
 			}	
 
 			//player bullet collision
-			for(m in game.enemies){																
-				for(p in game.projectiles){
+			for(var m in game.enemies){																
+				for(var p in game.projectiles){
 					if(Collision(game.enemies[m], game.projectiles[p]) && !game.enemies[m].dead){ //dead check avoids ghost scoring
-						if(game.soundStatus == "ON"){game.enemyexplodeSound.play()};
+						if(game.soundStatus == "ON"){game.enemyexplodeSound.play();}
 						game.projectiles.splice(p,1);
 						game.enemies[m].dead = true;
-						game.score++;
-						game.levelScore++;
+						if (!game.player.crashed){
+							game.score++;
+							game.levelScore++;							
+						}
 						// game.contextEnemies.clearRect(game.projectiles[p].x, game.projectiles[p].y, game.projectiles[p].size, game.projectiles[p].size*1.8);	
 						Xplode(game.enemies[m].x, game.enemies[m].y);
 						scores();
@@ -640,15 +454,15 @@
 				}
 			}
 
-			for (i in game.enemies){ //splicing enemies needs to be here
-				if(game.enemies[i].dead){
-					game.contextEnemies.clearRect(game.enemies[i].x, game.enemies[i].y, game.enemies[i].size, game.enemies[i].size);						
-					game.enemies.splice(i,1);
+			for (var t in game.enemies){ //splicing enemies needs to be here
+				if(game.enemies[t].dead){
+					game.contextEnemies.clearRect(game.enemies[t].x, game.enemies[t].y, game.enemies[t].size, game.enemies[t].size);						
+					game.enemies.splice(t,1);
 				}
 			}
 
 			//enemy bullet collision
-			for(n in game.enprojectiles){						
+			for(var n in game.enprojectiles){						
 				if(Collision(game.player, game.enprojectiles[n]) && !(game.gameOver)){
 					game.enprojectiles.splice(n,1);
 					game.contextPlayer.clearRect(game.player.x, game.player.y, game.player.size, game.player.size);
@@ -661,7 +475,7 @@
 				if (game.delayTimer < 50) {
 					game.delayTimer++;
 					if (game.delayTimer >= 50) {
-						if(game.soundStatus == "ON"){game.winSound.play()};
+						if(game.soundStatus == "ON"){game.winSound.play();}
 						game.level++;	
 						game.gameWon = true;
 						game.paused = true;
@@ -670,16 +484,16 @@
 					}	
 				}
 			}
-		}		
-		
-		//====================== Render functions =================//
+		}	
+//====================== Render functions =================//
 		
 		function render(){ //rendering to the screen
 
 			game.contextBackground.clearRect(0, 0, game.width, game.height); //clearing the star 'trails'
+			game.contextEnemies.clearRect(0, 0, game.width, game.height); //clearing the star 'trails'
 			//setting the fill color to white
-			for(i in game.stars){
-				var star = game.stars[i]; //adding a star var to simplify				
+			for(var o in game.stars){
+				var star = game.stars[o]; //adding a star var to simplify				
 				game.contextBackground.drawImage(game.images[star.image],star.x, star.y, star.size, star.size); //drawing the stars
 			}
 
@@ -692,20 +506,20 @@
 				}
 			}
 
-			for(i in game.enemies){ //for each enemy
-					var enemy = game.enemies[i]; //all together now
+			for(var g in game.enemies){ //for each enemy
+					var enemy = game.enemies[g]; //all together now
 					game.contextEnemies.clearRect(enemy.x - enemy.size*0.1, enemy.y - enemy.size*0.1, enemy.size*1.8, enemy.size*1.1); //clear trails
 					game.contextEnemies.drawImage(game.images[enemy.image], enemy.x, enemy.y, enemy.size, enemy.size); //rendering
 			}
 
 
-			for(e in game.explosions){
-				var xplos = game.explosions[e];
+			for(var u in game.explosions){
+				var xplos = game.explosions[u];
 				var xplosFpr = Math.floor(game.images[xplos.image].width / xplos.frameWidth); //Sprite FramesperRow
 
 				// create the sequence of frame numbers for the animation
-  				for (var frameNumber = xplos.startFrame; frameNumber <= xplos.endFrame; frameNumber++){
-    				xplos.animationSequence.push(frameNumber);
+  				for (var xplosFrameNum = xplos.startFrame; xplosFrameNum <= xplos.endFrame; xplosFrameNum++){
+    				xplos.animationSequence.push(xplosFrameNum);
     			}
 
     			// update to the next frame if it is time
@@ -716,32 +530,32 @@
 				// update the counter
 				xplos.counter = (xplos.counter + 1) % xplos.frameSpeed;
 
-				var row = Math.floor(xplos.animationSequence[xplos.currentFrame] / xplosFpr);
-				var col = Math.floor(xplos.animationSequence[xplos.currentFrame] % xplosFpr);
+				var xplosRow = Math.floor(xplos.animationSequence[xplos.currentFrame] / xplosFpr);
+				var xplosCol = Math.floor(xplos.animationSequence[xplos.currentFrame] % xplosFpr);
  				
  				if (xplos.currentFrame <= 19){
 				game.contextPlayer.drawImage(
 					game.images[xplos.image],
-					col * xplos.frameWidth, row * xplos.frameHeight,
+					xplosCol * xplos.frameWidth, xplosRow * xplos.frameHeight,
       				xplos.frameWidth, xplos.frameHeight,
 					xplos.x, xplos.y,
 					xplos.size, xplos.size);
 				}			
 			}
 
-			for(e in game.explosions){
-				if (xplos.currentFrame == 19){
-					game.explosions.splice(e,1);
+			for(var l in game.explosions){
+				if (game.explosions[l].currentFrame == 19){
+					game.explosions.splice(l,1);
 				}
 			}
 
-			for(i in game.projectiles){ //for each bullet
-				var proj = game.projectiles[i];
+			for(var q in game.projectiles){ //for each bullet
+				var proj = game.projectiles[q];
 				var projFpr = Math.floor(game.images[proj.image].width / proj.frameWidth); //Sprite FramesperRow
 
   				// create the sequence of frame numbers for the animation
-  				for (var frameNumber = proj.startFrame; frameNumber <= proj.endFrame; frameNumber++){
-    				proj.animationSequence.push(frameNumber);
+  				for (var projFrameNum = proj.startFrame; projFrameNum <= proj.endFrame; projFrameNum++){
+    				proj.animationSequence.push(projFrameNum);
     			}
 
     			// update to the next frame if it is time
@@ -752,28 +566,28 @@
 				// update the counter
 				proj.counter = (proj.counter + 1) % proj.frameSpeed;
 
-				var row = Math.floor(proj.animationSequence[proj.currentFrame] / projFpr);
-				var col = Math.floor(proj.animationSequence[proj.currentFrame] % projFpr);
+				var projRow = Math.floor(proj.animationSequence[proj.currentFrame] / projFpr);
+				var projCol = Math.floor(proj.animationSequence[proj.currentFrame] % projFpr);
  
 				// game.contextPlayer.clearRect(proj.x, proj.y + game.player.bulletspeed, proj.size, proj.size);
 				game.contextPlayer.drawImage(
 					game.images[proj.image],
-					col * proj.frameWidth, row * proj.frameHeight,
+					projCol * proj.frameWidth, projRow * proj.frameHeight,
       				proj.frameWidth, proj.frameHeight,
 					proj.x, proj.y,
-					proj.frameWidth * 0.2 * proj.size, proj.frameHeight * 0.2 * proj.size);
+					proj.size, proj.size);
 			}
 
 
 
-			for(i in game.enprojectiles){ //for each bullet
+			for(var i in game.enprojectiles){ //for each bullet
 				var enproj = game.enprojectiles[i];
 
 			var enprojFpr = Math.floor(game.images[enproj.image].width / enproj.frameWidth); //Sprite FramesperRow
 
   				// create the sequence of frame numbers for the animation
-  				for (var frameNumber = enproj.startFrame; frameNumber <= enproj.endFrame; frameNumber++){
-    				enproj.animationSequence.push(frameNumber);
+  				for (var enprojFrameNum = enproj.startFrame; enprojFrameNum <= enproj.endFrame; enprojFrameNum++){
+    				enproj.animationSequence.push(enprojFrameNum);
     			}
 
     			// update to the next frame if it is time
@@ -784,16 +598,16 @@
 				// update the counter
 				enproj.counter = (enproj.counter + 1) % enproj.frameSpeed;
 
-				var row = Math.floor(enproj.animationSequence[enproj.currentFrame] / enprojFpr);
-				var col = Math.floor(enproj.animationSequence[enproj.currentFrame] % enprojFpr);
+				var enprojRow = Math.floor(enproj.animationSequence[enproj.currentFrame] / enprojFpr);
+				var enprojCol = Math.floor(enproj.animationSequence[enproj.currentFrame] % enprojFpr);
  
 				// game.contextPlayer.clearRect(enproj.x, enproj.y + game.player.bulletspeed, enproj.size, enproj.size);
 				game.contextPlayer.drawImage(
 					game.images[enproj.image],
-					col * enproj.frameWidth, row * enproj.frameHeight,
+					enprojCol * enproj.frameWidth, enprojRow * enproj.frameHeight,
       				enproj.frameWidth, enproj.frameHeight,
 					enproj.x, enproj.y,
-					enproj.frameWidth * 0.25 * enproj.size, enproj.frameHeight * 0.25 * enproj.size);
+					enproj.size, enproj.size);
 			}
 
 			if (game.gameWon && game.level > 1 && game.level <=6 ){
@@ -827,40 +641,82 @@
 				game.levelScore = 0;
 			}			
 		}
-				
-		
-		//====================== The loop =================//		
-			
-		function loop(){ //the loop
-		
-			requestAnimFrame(loop);			
-			gameStart();
-			if (!game.paused){
-			update();
-			render();
-			}
-		}
-		
-		
-		//====================== Images engine =================//
-		
-		function initImages(paths) { //our images engine: passing the array 'paths' to the function
-			game.requiredImages = paths.length;  //the number of required images will be equal to the length of the paths array
-			for(i in paths){
-				var img = new Image; //defining img as a new image
-				img.src = paths[i]; //defining new image src as paths[i]
-				game.images[i] = img; //defining game.image[i] as a new image (with paths)
-				game.images[i].onload = function(){  //once an image loads..
-					game.doneImages++; //  ..increment the doneImages variable by 1
-				}
-			}
-		}
-		
-		
 		//====================== Game functions =================//
+
+
+		//Keyboard		
+		$(document).keydown(function(e){    //using jquery to listen to pressed keys
+			game.keys[e.keyCode ? e.keyCode : e.which] = true;	//and cross browser proofing
+		});
 		
+		$(document).keyup(function(e){   //using jquery to listen to released keys
+			delete game.keys[e.keyCode ? e.keyCode : e.which]; //once key is released, delete the key pressed action previously defined 
+		});
+		
+		//mouse and touch screens
+		var canvas;
+		var ctx;
+		var canvasX;
+		var canvasY;
+		var mouseIsDown = 0;
+		var moveX = canvasX;      //initial define of moveX as canvasX position
+ 
+
+		function initInput() {
+        canvas = document.getElementById("playerCanvas");
+        ctx = canvas.getContext("2d");
+		         
+        canvas.addEventListener("mousedown",mouseDown, false);
+        canvas.addEventListener("mouseup", mouseUp, false);        
+        canvas.addEventListener("mousemove",mouseXY, false);
+
+        canvas.addEventListener("touchstart", touchDown, false);
+        canvas.addEventListener("touchend", touchUp, false);
+        canvas.addEventListener("touchcancel", touchUp, false);
+        canvas.addEventListener("touchleave", touchUp, false);
+		canvas.addEventListener("touchmove", touchXY, false);
+		                
+		}
+		
+		
+		function mouseUp() {
+			mouseIsDown = 0;
+			mouseXY();
+		}
+		 
+		function touchUp() {
+			mouseIsDown = 0;
+		}
+		 
+		function mouseDown() {
+			mouseIsDown = 1;
+			mouseXY();
+		}
+		  
+		function touchDown() {
+			mouseIsDown = 1;
+			touchXY();
+		}
+		
+		function mouseXY(e) {
+			if (e) {
+				e.preventDefault();
+			canvasX = e.pageX - canvas.offsetLeft;
+			canvasY = e.pageY - canvas.offsetTop;
+			//showPos();
+			}
+		}
+		 
+		function touchXY(e) {
+			if (e) {
+				e.preventDefault();
+			canvasX = e.targetTouches[0].pageX - canvas.offsetLeft;
+			canvasY = e.targetTouches[0].pageY - canvas.offsetTop;
+			}
+		}
+				
 		function addStars(num){ //this function is going to take a number thus num
-			for(i=0; i<num; i++) {
+			for(var i=0; i<num; i++) {
 				game.stars.push({ //push values to the game.stars array
 					x:Math.floor(Math.random() * game.width), //floor will round down x which will be a random number between 0 and 550
 					y:game.height + 10, //+10 to spawn then outside the screen so players can't see them spawning
@@ -870,6 +726,50 @@
 			}
 		}
 		
+		function resetGame(){
+			mouseIsDown = 0;
+			game.gameOver = false; 
+			game.gameWon = false;					
+			game.downCount = 1;
+			game.left = false;
+			game.down = false;
+			game.enshootTimer = game.enfullShootTimer;
+			game.contextBackground.clearRect(1, 1, game.width, game.height); 
+			game.contextPlayer.clearRect(1, 1, game.width, game.height); 
+			game.contextEnemies.clearRect(1, 1, game.width, game.height); 
+			game.contextText.clearRect(1, 1, game.width, game.height); 
+			game.projectiles = [];
+			game.enprojectiles = [];
+			game.enemies = [];
+
+			for(var y = 0; y < game.level; y++) {	// y enemies vertically..
+				for(var x = 0; x < game.level; x++){ // ..by x horizontally
+					game.enemies.push({ //adding value to the game.enemies array
+						x: game.width*0.05  + (x*(game.width*0.15)) ,  //setting positions (1st bit) and making space between enemies (2nd bit)
+						y: game.height*0.10 + y*(game.player.size),
+						size: game.height*0.06, //the size of our enemies
+						image: 1, //their ships...
+						dead: false,
+						deadTime: 60
+					});
+				}
+			}
+
+			game.player = {	//creating our player
+				x: game.width*0.46,
+				y: game.height*0.90,
+				size: game.height*0.08,
+				speed: X_PlayerSpeed,
+				bulletspeed: X_BulletSpeed*game.height/1000,
+				image: 0,
+				rendered: false,
+				crashed: false					
+			};
+			game.paused = false;
+			scores();
+
+		}
+
 		function Xplode(xpos,ypos){ //add bullet function will be triggered every time space is pressed
 			game.explosions.push({
 				x: xpos,
@@ -892,9 +792,9 @@
 			game.projectiles.push({
 				x: game.player.x + game.player.size*0.40,
 				y: game.player.y - game.player.bulletspeed*1.8,
-				size: game.height*0.0025,
-				frameWidth: 64,
-				frameHeight: 43,
+				size: game.height*0.022,
+				frameWidth: 48,
+				frameHeight: 48,
 				startFrame: 0,
 				endFrame: 11,
 				frameSpeed: 4,
@@ -913,9 +813,9 @@
 			game.enprojectiles.push({
 				x: game.enemies[pEn].x + game.enemies[pEn].size*0.42,
 				y: game.enemies[pEn].y + game.enemies[pEn].size,
-				size: game.height*0.0025,
-				frameWidth: 24,
-				frameHeight: 74,
+				size: game.height*0.035,
+				frameWidth: 64,
+				frameHeight: 64,
 				startFrame: 0,
 				endFrame: 2,
 				frameSpeed: 5,
@@ -954,9 +854,10 @@
 		function PlayerDie(){
 			if (game.soundStatus == "ON"){game.playerexplodeSound.play();}
 			game.player.crashed = true;
+			game.gameOver = true;
 			game.lives--;
 			game.score = game.score - game.levelScore;
-			game.gameOver = true;
+			scores();
 			setTimeout(function(){
 				game.paused = true;
 				mouseIsDown = 0;
@@ -1002,6 +903,58 @@
 
 
 			}, 1000);
+		}
+
+		//Init	
+		function init(){ //initialising our game full of stars all over the screen
+			for(var i=0; i<600; i++) {
+				game.stars.push({ //push values to the game.stars array
+					x:Math.floor(Math.random() * game.width), //floor will round down x which will be a random number between 0 and 550
+					y:Math.floor(Math.random() * game.height),
+					size:Math.random()*game.width*0.003, //size of the stars
+					image: Math.floor(Math.random()*(19-14+1)+14) //returns a random number between and 
+				});
+			}
+			for(var y = 0; y < game.level; y++) {	// y enemies vertically..
+				for(var x = 0; x < game.level; x++){ // ..by x horizontally
+					game.enemies.push({ //adding value to the game.enemies array
+						x: game.width*0.15  + (x*(game.width*0.15)) ,  //setting positions (1st bit) and making space between enemies (2nd bit)
+						y: game.height*0.10 + y*(game.player.size),
+						size: game.height*0.06, //the size of our enemies
+						image: 1, //their ships...
+						dead: false,
+						deadTime: 60
+					});
+				}
+			}	
+								
+			loop();
+			
+		}
+			
+		function loop(){ //the loop
+		
+			requestAnimFrame(loop);			
+			gameState();
+			if (!game.paused){
+			update();
+			render();
+			}
+		}
+
+		//====================== Images engine =================//
+		
+		function initImages(paths) { //our images engine: passing the array 'paths' to the function
+			game.requiredImages = paths.length;  //the number of required images will be equal to the length of the paths array
+			for(var i in paths){
+				var img = new Image(); //defining img as a new image
+				img.src = paths[i]; //defining new image src as paths[i]
+				game.images[i] = img; //defining game.image[i] as a new image (with paths)
+				/*jshint -W083 */
+				game.images[i].onload = function(){  //once an image loads..
+					game.doneImages++; //  ..increment the doneImages variable by 1
+				};
+			}
 		}	
 
 		function checkImages(){	//checking if all images have been loaded. Once all loaded run init
@@ -1028,33 +981,34 @@
 		}
 			
 		initImages([	//using initimages function to load our images
-			"_img/fighter/fighter.png",
-			"_img/enemy.png",
-			"_img/laser.png",
-			"_img/explosion.png",
-			"_img/fighter/fighter_right1.png",
-			"_img/fighter/fighter_right2.png",
-			"_img/fighter/fighter_right3.png",
-			"_img/fighter/fighter_right4.png",
-			"_img/fighter/fighter_right5.png",
-			"_img/fighter/fighter_left1.png",
-			"_img/fighter/fighter_left2.png",
-			"_img/fighter/fighter_left3.png",
-			"_img/fighter/fighter_left4.png",
-			"_img/fighter/fighter_left5.png",
-			"_img/stars/star1.png",
-			"_img/stars/star2.png",
-			"_img/stars/star3.png",
-			"_img/stars/star4.png",
-			"_img/stars/star5.png",
-			"_img/stars/star6.png",
-			"_img/missile.png"
+			"_img/_dist/fighter/fighter.png",
+			"_img/_dist/enemy.png",
+			"_img/_dist/laser.png",
+			"_img/_dist/explosion.png",
+			"_img/_dist/fighter/fighter_right1.png",
+			"_img/_dist/fighter/fighter_right2.png",
+			"_img/_dist/fighter/fighter_right3.png",
+			"_img/_dist/fighter/fighter_right4.png",
+			"_img/_dist/fighter/fighter_right5.png",
+			"_img/_dist/fighter/fighter_left1.png",
+			"_img/_dist/fighter/fighter_left2.png",
+			"_img/_dist/fighter/fighter_left3.png",
+			"_img/_dist/fighter/fighter_left4.png",
+			"_img/_dist/fighter/fighter_left5.png",
+			"_img/_dist/stars/star1.png",
+			"_img/_dist/stars/star2.png",
+			"_img/_dist/stars/star3.png",
+			"_img/_dist/stars/star4.png",
+			"_img/_dist/stars/star5.png",
+			"_img/_dist/stars/star6.png",
+			"_img/_dist/missile.png"
 		]);
 		
 		checkImages(); //this function call starts our game
+	/* jshint ignore:start */
 	});
 })();
-
+/* jshint ignore:end */
 
 window.requestAnimFrame = (function(){  // Creating a request animAnimeFrame function and making it work across browsers.  window.requestAnimationFrame is an HTML built in 60fps anim function
 	return  window.requestAnimationFrame       ||
@@ -1071,4 +1025,4 @@ window.requestAnimFrame = (function(){  // Creating a request animAnimeFrame fun
 				// }
 				window.setTimeout(callback, 1000 / 60);			
 			};
-})();
+})(); // jshint ignore:line

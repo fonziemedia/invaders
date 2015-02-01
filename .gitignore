@@ -43,5 +43,11 @@ Network Trash Folder
 Temporary Items
 .apdisk
 
-# My Custom Dir / Files
-_img/_src
+# Custom
+_img/_src/
+_sounds/_src/
+node_modules/
+gruntfile.js
+npm-debug.log
+package.json
+invaders.bat

@@ -4,7 +4,7 @@ CACHE MANIFEST
 # Explicitly cached entries
 index.html
 style.css
-script.js
+main.min.js
 game.xml
 
 FALLBACK:
@@ -16,27 +16,27 @@ NETWORK:
 
 # Additional resources to cache
 CACHE:
-_img/explosion.png
-_img/enemy.png
-_img/laser.png
-_img/stars/star1.png
-_img/stars/star2.png
-_img/stars/star3.png
-_img/stars/star4.png
-_img/stars/star5.png
-_img/stars/star6.png
-_img/fighter/fighter.png
-_img/fighter/fighter_left1.png
-_img/fighter/fighter_left2.png
-_img/fighter/fighter_left3.png
-_img/fighter/fighter_left4.png
-_img/fighter/fighter_left5.png
-_img/fighter/fighter_right1.png
-_img/fighter/fighter_right2.png
-_img/fighter/fighter_right3.png
-_img/fighter/fighter_right4.png
-_img/fighter/fighter_right5.png
-_img/missile.png
+_img/_dist/explosion.png
+_img/_dist/enemy.png
+_img/_dist/laser.png
+_img/_dist/stars/star1.png
+_img/_dist/stars/star2.png
+_img/_dist/stars/star3.png
+_img/_dist/stars/star4.png
+_img/_dist/stars/star5.png
+_img/_dist/stars/star6.png
+_img/_dist/fighter/fighter.png
+_img/_dist/fighter/fighter_left1.png
+_img/_dist/fighter/fighter_left2.png
+_img/_dist/fighter/fighter_left3.png
+_img/_dist/fighter/fighter_left4.png
+_img/_dist/fighter/fighter_left5.png
+_img/_dist/fighter/fighter_right1.png
+_img/_dist/fighter/fighter_right2.png
+_img/_dist/fighter/fighter_right3.png
+_img/_dist/fighter/fighter_right4.png
+_img/_dist/fighter/fighter_right5.png
+_img/_dist/missile.png
 
 # Updating the cache
 #
